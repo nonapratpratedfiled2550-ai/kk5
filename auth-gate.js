@@ -117,9 +117,22 @@
       btn.textContent = loadingMsg;
     }
     (function tick() {
-      if (w.__shMainReady && run()) {
-        if (btn) { btn.disabled = false; btn.textContent = btnText; }
-        return;
+      if (w.__shMainReady) {
+        try {
+          if (run()) {
+            if (btn) { btn.disabled = false; btn.textContent = btnText; }
+            closeModal('staffLoginModal');
+            closeModal('studentLoginModal');
+            var rs = document.getElementById('role-screen');
+            if (rs) rs.classList.add('role-screen-hidden');
+            return;
+          }
+        } catch (e) {
+          console.error('[SH auth-gate]', e);
+          if (btn) { btn.disabled = false; btn.textContent = btnText; }
+          alert('เข้าสู่ระบบไม่สำเร็จ กรุณารีเฟรชหน้าแล้วลองใหม่');
+          return;
+        }
       }
       waited += step;
       if (waited >= maxWait) {
@@ -143,6 +156,7 @@
 
   w.submitStudentLogin = function () {
     whenMainReady(function () {
+      if (typeof w.STUDENT_BASIC === 'undefined') return false;
       if (w._submitStudentLoginImpl) {
         w._submitStudentLoginImpl();
         return true;

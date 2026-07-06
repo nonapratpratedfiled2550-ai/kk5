@@ -22,11 +22,11 @@ var SHEET_SCHEMAS = {
     'น้ำหนัก(kg)', 'ส่วนสูง(cm)', 'BMI', 'สถานะโภชนาการ', 'บทบาทผู้บันทึก'
   ],
   'วัคซีน': [
-    'เลขประจำตัว', 'ชื่อนามสกุล', 'วัคซีนที่ฉีด', 'วันที่ฉีด', 'วันที่บันทึก', 'บทบาทผู้บันทึก'
+    'รหัสรายการ', 'เลขประจำตัว', 'ชื่อนามสกุล', 'วัคซีนที่ฉีด', 'วันที่ฉีด', 'วันที่บันทึก', 'บทบาทผู้บันทึก'
   ],
   'โรคเรื้อรัง': [
     'วันที่บันทึก', 'รหัสนักเรียน', 'ชื่อ-นามสกุล', 'ชั้น', 'โรคประจำตัว',
-    'ยาที่ใช้', 'เบอร์ติดต่อฉุกเฉิน', 'หมายเหตุ', 'บทบาทผู้บันทึก'
+    'ยาที่ใช้', 'เบอร์ติดต่อฉุกเฉิน', 'หมายเหตุ', 'แผนการดูแล', 'บทบาทผู้บันทึก'
   ],
   'รายงานโรคติดต่อ_นักเรียน': [
     'วันที่รายงาน', 'รหัสนักเรียน', 'ชื่อ-นามสกุล', 'โรคที่พบ/สงสัย',
@@ -75,6 +75,11 @@ var SHEET_SCHEMAS = {
   'ข้อมูลสุขภาพนักเรียน': [
     'รหัสนักเรียน', 'ชื่อ-นามสกุล', 'แพ้ยา', 'แพ้อาหาร', 'ข้อควรระวัง',
     'เบอร์ผู้ปกครอง', 'โรคประจำตัว', 'วันที่บันทึก', 'บทบาทผู้บันทึก'
+  ],
+  'ทะเบียนนักเรียน': [
+    'รหัสนักเรียน', 'ชื่อ-นามสกุล', 'ชั้น', 'อายุ', 'เพศ',
+    'โรคประจำตัว', 'แพ้ยา', 'แพ้อาหาร', 'ข้อควรระวัง',
+    'เบอร์ผู้ปกครอง', 'วันที่อัปเดต'
   ]
 };
 
@@ -86,6 +91,8 @@ var FIELD_ALIASES = {
   'วัคซีนที่ฉีด': ['วัคซีน', 'vaccine'],
   'วันที่ฉีด': ['date'],
   'วันที่บันทึก': ['recordedAt'],
+  'รหัสกิจกรรม': ['id'],
+  'รหัสรายการ': ['recordId', 'uid', 'id'],
   'วันที่เวลา': ['recordedAt', 'eventAt'],
   'รหัสนักเรียน': ['รหัส', 'id', 'เลขประจำตัว', 'เลขประจำตัวนักเรียน'],
   'ชื่อ': ['ชื่อ-นามสกุล', 'ชื่อนามสกุล', 'name'],
@@ -220,6 +227,19 @@ function handlePayload_(raw) {
     deleteAppointmentRow_(delSheet, body.studentId || body.id);
     return jsonResponse_({ ok: true, deleted: true });
   }
+  if (body.action === 'deleteRow') {
+    var delRowSheet = body.sheet;
+    if (!delRowSheet || !SHEET_SCHEMAS[delRowSheet]) {
+      throw new Error('Unknown sheet: ' + delRowSheet);
+    }
+    var delMatchKey = body.matchKey;
+    var delMatchValue = body.matchValue;
+    if (delMatchValue == null && body.row) {
+      delMatchValue = body.row[delMatchKey] || body.row.id;
+    }
+    deleteRowByMatchKey_(delRowSheet, delMatchKey, delMatchValue);
+    return jsonResponse_({ ok: true, deleted: true });
+  }
   if (body.action === 'upsertAppointment') {
     var apptSheet = body.sheet || 'ใบนัด';
     var apptRow = body.row || body.values || {};
@@ -248,6 +268,21 @@ function handlePayload_(raw) {
     if (!rowMatchKey) throw new Error('matchKey required for upsertRow');
     var rowNum = upsertMentalRow_(rowSheet, rowMatchKey, rowData);
     return jsonResponse_({ ok: true, sheet: rowSheet, row: rowNum, upserted: true });
+  }
+  if (body.action === 'batchUpsertRows') {
+    var batchSheet = body.sheet;
+    var batchMatchKey = body.matchKey;
+    var batchRows = body.rows || [];
+    if (!batchSheet || !SHEET_SCHEMAS[batchSheet]) {
+      throw new Error('Unknown sheet: ' + batchSheet);
+    }
+    if (!batchMatchKey) throw new Error('matchKey required for batchUpsertRows');
+    var batchCount = 0;
+    for (var bi = 0; bi < batchRows.length; bi++) {
+      upsertMentalRow_(batchSheet, batchMatchKey, batchRows[bi]);
+      batchCount++;
+    }
+    return jsonResponse_({ ok: true, sheet: batchSheet, count: batchCount, upserted: true });
   }
   var sheetName = body.sheet;
   var row = body.row || body.values || {};
@@ -527,6 +562,24 @@ function getAppointmentRow_(sheetName, studentId) {
     studentName: String(getValueForHeader_('ชื่อ-นามสกุล', obj) || ''),
     updatedAt: Date.now()
   };
+}
+
+function deleteRowByMatchKey_(sheetName, matchKey, matchValue) {
+  if (!matchValue) return;
+  var ss = getSpreadsheet_();
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet || sheet.getLastRow() < 2) return;
+  var headers = getSheetHeaders_(sheet, sheetName);
+  var matchIndex = findHeaderIndex_(headers, matchKey);
+  if (matchIndex < 0) return;
+  var lastRow = sheet.getLastRow();
+  for (var r = lastRow; r >= 2; r--) {
+    if (idsMatch_(sheet.getRange(r, matchIndex + 1).getValue(), matchValue)) {
+      sheet.deleteRow(r);
+      SpreadsheetApp.flush();
+      return;
+    }
+  }
 }
 
 function deleteAppointmentRow_(sheetName, studentId) {

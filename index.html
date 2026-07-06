@@ -451,7 +451,7 @@
   #section-dashboard:not(.dash-admin-view) .dash-stat-grid .stat-num { font-size: 26px; line-height: 1.1; }
   #section-dashboard:not(.dash-admin-view) .dash-stat-grid .stat-label { font-size: 11.5px; line-height: 1.35; margin-top: 4px; }
   #section-dashboard:not(.dash-admin-view) .dash-stat-grid .stat-icon { opacity: 0.22; font-size: 26px; right: 12px; top: 12px; }
-  #section-dashboard:not(.dash-admin-view) #dash-calendar-row { margin-top: 4px; }
+  #section-visit #dash-calendar-row { margin-top: 16px; }
   .school-cal-form .form-group label { font-size: 12px; font-weight: 600; }
   .school-cal-saved-list { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; max-height: 220px; overflow-y: auto; }
   .school-cal-saved-item {
@@ -508,20 +508,20 @@
     display: block; color: var(--green-deep); margin-bottom: 4px; font-size: 13px; line-height: 1.4;
   }
   #schoolCalDayModal .modal { max-width: 480px; }
-  #section-dashboard:not(.dash-admin-view) #nurse-alert-manager {
-    margin-top: 18px;
+  #section-visit #nurse-alert-manager {
+    margin-top: 16px;
     border: 1px solid rgba(26, 138, 90, 0.12);
     background: linear-gradient(180deg, #ffffff 0%, #f8fdfb 100%);
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
   }
-  #section-dashboard:not(.dash-admin-view) #nurse-alert-manager .card-title {
+  #section-visit #nurse-alert-manager .card-title {
     font-size: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
     margin-bottom: 12px;
   }
-  #section-dashboard:not(.dash-admin-view) #nurse-alert-input {
+  #section-visit #nurse-alert-input {
     border-radius: 10px;
     border-color: var(--green-pale);
     min-height: 72px;
@@ -1645,11 +1645,16 @@
     font-size: 11px;
     line-height: 1.35;
   }
-  #section-dashboard.dash-admin-view #dash-calendar-card { display: none !important; }
-  #section-dashboard.dash-admin-view #dash-calendar-row {
+  body.dash-admin-view.dash-role-admin #dash-calendar-card { display: none !important; }
+  body.dash-admin-view.dash-role-admin #dash-calendar-row {
     display: grid !important;
     grid-template-columns: 1fr !important;
-    margin-top: 8px;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  body.dash-admin-view.dash-role-nurse #dash-calendar-row {
+    display: grid !important;
+    margin-top: 16px;
     margin-bottom: 8px;
   }
   #section-dashboard.dash-admin-view.active #dash-admin-charts {
@@ -2556,7 +2561,10 @@
     transition: opacity 0.45s ease, visibility 0.45s ease;
   }
   .role-screen.role-screen-hidden {
-    opacity: 0; visibility: hidden; pointer-events: none;
+    display: none !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none !important;
   }
   /* สำรอง layout หน้า Welcome — ไม่พึ่ง Tailwind CDN */
   #role-screen {
@@ -2582,6 +2590,13 @@
     z-index: 600;
     background: rgba(14, 40, 28, 0.32);
     backdrop-filter: blur(6px);
+  }
+  .student-login-overlay.open {
+    display: flex;
+  }
+  .student-login-overlay:not(.open) {
+    display: none !important;
+    pointer-events: none !important;
   }
   .student-login-modal {
     max-width: 340px;
@@ -3012,78 +3027,6 @@
 
       <div id="dash-admin-alerts" class="dash-admin-alert-list" style="display:none;"></div>
 
-      <div class="two-col" id="dash-calendar-row">
-        <div class="card" id="dash-calendar-card">
-          <div class="card-title"><span>📝</span>บันทึกปฏิทินโรงเรียน</div>
-          <p style="font-size:12px;color:var(--gray-mid);margin:-4px 0 12px;">กรอกรายละเอียดกิจกรรม แล้วกดบันทึก — จะแสดงบนปฏิทินด้านขวาทันที</p>
-          <div class="school-cal-form" id="school-cal-form">
-            <div class="form-grid">
-              <div class="form-group full-width">
-                <label for="school-cal-title">ชื่อกิจกรรม / รายละเอียด</label>
-                <input type="text" id="school-cal-title" placeholder="เช่น ตรวจสุขภาพนักเรียน ม.1 และ ม.4">
-              </div>
-              <div class="form-group">
-                <label for="school-cal-start">วันเริ่ม</label>
-                <input type="date" id="school-cal-start">
-              </div>
-              <div class="form-group">
-                <label for="school-cal-end">วันสิ้นสุด</label>
-                <input type="date" id="school-cal-end" placeholder="ถ้าไม่กรอกจะใช้วันเริ่ม">
-              </div>
-              <div class="form-group full-width">
-                <label for="school-cal-note">หมายเหตุเพิ่มเติม (ถ้ามี)</label>
-                <textarea id="school-cal-note" rows="2" placeholder="เช่น ทุกระดับชั้น / ห้องพยาบาล"></textarea>
-              </div>
-            </div>
-            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-              <button type="button" class="btn btn-primary" onclick="addSchoolCalendarEvent()">💾 บันทึกลงปฏิทิน</button>
-              <button type="button" class="btn btn-secondary" onclick="resetSchoolCalendarForm()">ล้างฟอร์ม</button>
-            </div>
-          </div>
-          <div class="school-cal-saved-list" id="school-cal-saved-list"></div>
-        </div>
-
-        <div class="card" id="dash-coverage-card" data-school-cal-root>
-          <div class="card-title"><span>📅</span>ปฏิทินโรงเรียน</div>
-          <div class="school-cal-toolbar">
-            <div class="school-cal-month-label" id="school-cal-month-label" data-school-cal-month>—</div>
-            <div class="school-cal-nav">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="schoolCalPrevMonth()">◀</button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="schoolCalGoToday()">วันนี้</button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="schoolCalNextMonth()">▶</button>
-            </div>
-          </div>
-          <div id="school-cal-grid-host" data-school-cal-grid></div>
-          <div class="school-cal-legend">
-            <span>🟢 กิจกรรมงานอนามัย</span>
-            <span>· คลิกวันในปฏิทินเพื่อดูรายละเอียดกิจกรรม</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" id="nurse-alert-manager" data-staff-only style="display:none;">
-        <div class="card-title"><span>📢</span>จัดการแจ้งเตือน</div>
-        <p style="font-size:12px;color:var(--gray-mid);margin:-4px 0 12px;">เจ้าหน้าที่อนามัยและผู้บริหารสามารถเขียนแจ้งเตือน — นักเรียนและครูจะเห็นเฉพาะข้อความที่เผยแพร่</p>
-        <div class="form-grid">
-          <div class="form-group" style="grid-column:1/-1;">
-            <label for="nurse-alert-input">ข้อความแจ้งเตือน</label>
-            <textarea id="nurse-alert-input" rows="3" placeholder="เช่น พบนักเรียนมีไข้สูง 5 รายใน ม.3/2 — ควรเฝ้าระวังโรคติดต่อ"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="nurse-alert-priority">ระดับความสำคัญ</label>
-            <select id="nurse-alert-priority">
-              <option value="info">ทั่วไป</option>
-              <option value="warning" selected>ควรทราบ</option>
-              <option value="urgent">ด่วน</option>
-            </select>
-          </div>
-        </div>
-        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-primary" onclick="publishNurseAlert()">📢 เผยแพร่แจ้งเตือน</button>
-        </div>
-        <div id="nurse-alert-manager-list" class="nurse-alert-manager-list"></div>
-      </div>
-
       <div id="dash-admin-charts" style="display:none;">
         <div class="dash-exec-row dash-exec-row-hero">
           <div class="dash-exec-card">
@@ -3106,7 +3049,7 @@
         <div class="dash-exec-row dash-exec-row-gauges">
           <div class="dash-exec-card">
             <div class="dash-exec-card-title"><span>🎯</span>ความครอบคลุมมาตรฐานงานอนามัย ปีการศึกษา 2569</div>
-            <p class="dash-exec-note" id="admin-chart-gauges-note">เปอร์เซ็นต์ความสำเร็จตามมาตรฐาน GSHS ปีการศึกษา 2569</p>
+            <p class="dash-exec-note" id="admin-chart-gauges-note">เปอร์เซ็นต์ความสำเร็จตามมาตรฐาน GSHPS ปีการศึกษา 2569</p>
             <div id="admin-chart-gauges"></div>
           </div>
         </div>
@@ -3462,7 +3405,7 @@
                 <option value="year">รายการปีนี้</option>
               </select>
             </div>
-            <p id="visit-list-period-hint" style="font-size:11px;color:var(--gray-mid);margin:-4px 0 10px;">รายการวันนี้ (ภายใน 1 วัน) → หลัง 1 วันไปสัปดาห์ → หลัง 4 สัปดาห์ไปเดือน → หลัง 12 เดือนไปปี</p>
+            <p id="visit-list-period-hint" style="font-size:11px;color:var(--gray-mid);margin:-4px 0 10px;">ยึดวันเวลาที่บันทึกตอนแรก — ครบ 1 วัน → สัปดาห์ → ครบ 1 เดือน → เดือน → ครบ 1 ปี → ปี → เกิน 1 ปี → ประวัติ</p>
             <div class="table-wrap">
               <table>
                 <thead><tr><th id="visit-list-time-head">วันที่/เวลา</th><th class="visit-col-staff">ชื่อ</th><th class="visit-col-staff">ชั้น</th><th>อาการ</th><th>สถานะ</th><th>คำแนะนำ</th></tr></thead>
@@ -3521,9 +3464,79 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- ===== VISIT RECORD (นักเรียน / ครู — ดูบันทึกการรักษา) ===== -->
+      <div class="card" id="nurse-alert-manager" data-staff-only style="display:none;margin-top:16px;">
+        <div class="card-title"><span>📢</span>จัดการแจ้งเตือน</div>
+        <p style="font-size:12px;color:var(--gray-mid);margin:-4px 0 12px;">เจ้าหน้าที่อนามัยและผู้บริหารสามารถเขียนแจ้งเตือน — นักเรียนและครูจะเห็นเฉพาะข้อความที่เผยแพร่</p>
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label for="nurse-alert-input">ข้อความแจ้งเตือน</label>
+            <textarea id="nurse-alert-input" rows="3" placeholder="เช่น พบนักเรียนมีไข้สูง 5 รายใน ม.3/2 — ควรเฝ้าระวังโรคติดต่อ"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="nurse-alert-priority">ระดับความสำคัญ</label>
+            <select id="nurse-alert-priority">
+              <option value="info">ทั่วไป</option>
+              <option value="warning" selected>ควรทราบ</option>
+              <option value="urgent">ด่วน</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary" onclick="publishNurseAlert()">📢 เผยแพร่แจ้งเตือน</button>
+        </div>
+        <div id="nurse-alert-manager-list" class="nurse-alert-manager-list"></div>
+      </div>
+
+      <div class="two-col" id="dash-calendar-row" data-staff-only style="margin-top:16px;">
+        <div class="card" id="dash-calendar-card">
+          <div class="card-title"><span>📝</span>บันทึกปฏิทินโรงเรียน</div>
+          <p style="font-size:12px;color:var(--gray-mid);margin:-4px 0 12px;">กรอกรายละเอียดกิจกรรม แล้วกดบันทึก — จะแสดงบนปฏิทินด้านขวาทันที</p>
+          <div class="school-cal-form" id="school-cal-form">
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="school-cal-title">ชื่อกิจกรรม / รายละเอียด</label>
+                <input type="text" id="school-cal-title" placeholder="เช่น ตรวจสุขภาพนักเรียน ม.1 และ ม.4">
+              </div>
+              <div class="form-group">
+                <label for="school-cal-start">วันเริ่ม</label>
+                <input type="date" id="school-cal-start">
+              </div>
+              <div class="form-group">
+                <label for="school-cal-end">วันสิ้นสุด</label>
+                <input type="date" id="school-cal-end" placeholder="ถ้าไม่กรอกจะใช้วันเริ่ม">
+              </div>
+              <div class="form-group full-width">
+                <label for="school-cal-note">หมายเหตุเพิ่มเติม (ถ้ามี)</label>
+                <textarea id="school-cal-note" rows="2" placeholder="เช่น ทุกระดับชั้น / ห้องพยาบาล"></textarea>
+              </div>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-primary" onclick="addSchoolCalendarEvent()">💾 บันทึกลงปฏิทิน</button>
+              <button type="button" class="btn btn-secondary" onclick="resetSchoolCalendarForm()">ล้างฟอร์ม</button>
+            </div>
+          </div>
+          <div class="school-cal-saved-list" id="school-cal-saved-list"></div>
+        </div>
+
+        <div class="card" id="dash-coverage-card" data-school-cal-root>
+          <div class="card-title"><span>📅</span>ปฏิทินโรงเรียน</div>
+          <div class="school-cal-toolbar">
+            <div class="school-cal-month-label" id="school-cal-month-label" data-school-cal-month>—</div>
+            <div class="school-cal-nav">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="schoolCalPrevMonth()">◀</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="schoolCalGoToday()">วันนี้</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="schoolCalNextMonth()">▶</button>
+            </div>
+          </div>
+          <div id="school-cal-grid-host" data-school-cal-grid></div>
+          <div class="school-cal-legend">
+            <span>🟢 กิจกรรมงานอนามัย</span>
+            <span>· คลิกวันในปฏิทินเพื่อดูรายละเอียดกิจกรรม</span>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="section-visit-record" class="section-panel">
       <div class="page-header">
         <div class="page-header-icon">🩺</div>
@@ -3940,7 +3953,7 @@
             </div>
             <div class="vac-edu-block">
               <h4>✅ อาหารที่ควรรับประทาน</h4>
-              <p>ข้าวกล้อง ไก่ ปลา ไข่ ถั่ว ผักใบเขียว ผลไม้สด นมไขมันต่ำ อาหารสดใหม่ปรุงสุก ลดอาหารทอด ของหวาน และเครื่องดื่มติดฟอง</p>
+              <p>ข้าวกล้อง ไก่ ปลา ไข่ ถั่ว ผักใบเขียว ผลไม้สด นมไขมันต่ำ อาหารสดใหม่ปรุงสุก ลดอาหารทอด ของหวาน และน้ำอัดลม</p>
             </div>
             <div class="vac-edu-block">
               <h4>🚫 อาหารที่ควรหลีกเลี่ยง</h4>
@@ -4116,6 +4129,7 @@
           <div class="form-group"><label>ยาที่ใช้ประจำ</label><input type="text" id="chr-staff-medicine" placeholder="ชื่อยา / อุปกรณ์ (ถ้ามี)"></div>
           <div class="form-group"><label>เบอร์ติดต่อฉุกเฉิน</label><input type="tel" id="chr-staff-phone" placeholder="เบอร์ผู้ปกครอง"></div>
           <div class="form-group full-width"><label>หมายเหตุเพิ่มเติม</label><textarea id="chr-staff-note" placeholder="ข้อมูลที่ควรทราบ เช่น อาหาร/ยาที่แพ้ อาการเมื่อแพ้..." rows="2"></textarea></div>
+          <div class="form-group full-width"><label>แผนการดูแล (เจ้าหน้าที่อนามัย)</label><textarea id="chr-staff-care" placeholder="เช่น สังเกตอาการทุกเช้า เก็บยาสำรองไว้ห้องพยาบาล แจ้งครูประจำชั้นเมื่อมีอาการ..." rows="3"></textarea></div>
         </div>
         <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
           <button type="button" class="btn btn-primary" onclick="saveStaffChronic()">บันทึก</button>
@@ -4137,7 +4151,7 @@
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>ชั้น</th><th>โรค</th><th>ยาสำรองที่ห้องพยาบาล</th><th>ติดต่อฉุกเฉิน</th><th>การดูแล</th></tr></thead>
+            <thead><tr><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>ชั้น</th><th>โรค</th><th>ยาสำรองที่ห้องพยาบาล</th><th>ติดต่อฉุกเฉิน</th><th>การดูแล</th><th></th></tr></thead>
             <tbody id="chronic-records-body"></tbody>
           </table>
         </div>
@@ -4217,8 +4231,8 @@
         <div class="card">
           <div class="card-title"><span>📤</span>บันทึกการส่งต่อ</div>
           <div class="form-grid">
-            <div class="form-group"><label>เลขประจำตัว (ถ้ามี)</label><input type="text" id="ref-id" placeholder="รหัสนักเรียน/บุคลากร" onblur="fillReferralFromId()"></div>
-            <div class="form-group"><label>ชื่อ-นามสกุล</label><input type="text" id="ref-name" placeholder="ชื่อ-นามสกุล"></div>
+            <div class="form-group"><label>เลขประจำตัว (ถ้ามี)</label><input type="text" id="ref-id" placeholder="รหัสนักเรียน/บุคลากร" oninput="fillReferralNameFromId()" onblur="fillReferralFromId()"></div>
+            <div class="form-group"><label>ชื่อ-นามสกุล</label><input type="text" id="ref-name" placeholder="ชื่อ-นามสกุล" oninput="fillReferralIdFromName()" onblur="fillReferralFromName()"></div>
             <div class="form-group"><label>ระดับชั้น</label>
               <select id="ref-class">
                 <option>ม.1</option><option>ม.2</option><option>ม.3</option><option>ม.4</option><option>ม.5</option><option>ม.6</option><option>ครู/บุคลากร</option>
@@ -4267,7 +4281,7 @@
         <div class="page-header-icon">🧠</div>
         <div>
           <div class="page-header-title">สุขภาพจิตและพฤติกรรมเสี่ยง</div>
-          <div class="page-header-desc">ประเมิน SDQ คัดกรองความเครียด ยาเสพติด เพศสัมพัน​ธ์ และพฤติกรรมเสี่ยง</div>
+          <div class="page-header-desc">ประเมิน SDQ คัดกรองความเครียด สารเสพติด เพศสัมพันธ์ และพฤติกรรมเสี่ยง</div>
         </div>
       </div>
 
@@ -4591,6 +4605,7 @@
           </select>
           <button class="btn btn-primary">🔍 ค้นหา</button>
           <button class="btn btn-secondary" onclick="openAddStudent()">➕ เพิ่มนักเรียน</button>
+          <button type="button" class="btn btn-secondary staff-only-sync" id="btn-sync-student-registry" onclick="syncStudentRegistryNow()" style="display:none">☁️ ซิงค์ทะเบียนไป Google Sheet</button>
         </div>
         <div class="student-count" id="student-count"></div>
         <div class="table-wrap">
@@ -7372,7 +7387,7 @@
         <p style="font-size:12px;color:var(--gray-mid);margin:-4px 0 12px;">คลิกที่คอลัมน์สถานะเพื่อเปลี่ยนได้ — ระบบคำนวณอัตโนมัติจากจำนวนคงเหลือ (จะรีเซ็ตเมื่อบันทึกรับยาเข้าคลัง)</p>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>ชื่อยา</th><th>ประเภท</th><th>คงเหลือ</th><th>หน่วย</th><th>วันหมดอายุ</th><th>สถานะ</th></tr></thead>
+            <thead><tr><th>ชื่อยา</th><th>ประเภท</th><th>คงเหลือ</th><th>หน่วย</th><th>วันหมดอายุ</th><th>สถานะ</th><th></th></tr></thead>
             <tbody id="medicine-stock-body"></tbody>
           </table>
         </div>
@@ -7608,7 +7623,7 @@
               </div>
               <button type="button" class="btn btn-primary" style="margin-top:12px;" onclick="calcPubNutrition()">📊 ดูผลประเมิน</button>
               <button type="button" class="btn btn-secondary btn-sm" style="margin-top:12px;margin-left:6px;" onclick="resetPubNutrition()">ล้างข้อมูล</button>
-              <div class="alert alert-info" style="margin-top:12px;" id="pub-nut-result">กรอกน้ำหนักและส่วนสูง แล้วกด「ดูผลประเมิน」</div>
+              <div class="alert alert-info" style="margin-top:12px;" id="pub-nut-result">กรอกน้ำหนักและส่วนสูง แล้วกดปุ่ม "ดูผลประเมิน"</div>
               <div id="pub-nut-advice" style="margin-top:12px;"></div>
             </div>
             <div class="card">
@@ -7638,7 +7653,7 @@
               <div id="pub-nineq-form" class="mh-q-list"></div>
               <button type="button" class="btn btn-primary" style="margin-top:12px;" onclick="updatePub9QResult()">📋 ดูผลประเมิน</button>
               <button type="button" class="btn btn-secondary btn-sm" style="margin-top:12px;margin-left:6px;" onclick="resetPub9Q()">ล้างคำตอบ</button>
-              <div id="pub-nineq-result" class="alert alert-info" style="margin-top:12px;"><span>ℹ️</span><div id="pub-nineq-result-text">กรุณาตอบคำถามให้ครบทุกข้อ แล้วกด「ดูผลประเมิน」</div></div>
+              <div id="pub-nineq-result" class="alert alert-info" style="margin-top:12px;"><span>ℹ️</span><div id="pub-nineq-result-text">กรุณาตอบคำถามให้ครบทุกข้อ แล้วกดปุ่ม "ดูผลประเมิน"</div></div>
             </div>
             <div class="card">
               <div class="card-title"><span>📌</span>เกณฑ์ตีความ 9Q</div>
@@ -7939,6 +7954,42 @@
   </div>
 </div>
 
+<!-- MODAL: แผนการดูแลโรคประจำตัว -->
+<div class="modal-overlay" id="chronicCarePlanModal" onclick="if(event.target===this)closeChronicCarePlanModal()">
+  <div class="modal basic-info-modal" style="max-width:560px;">
+    <div class="modal-title">
+      <span>🫀</span>แผนการดูแลนักเรียน
+      <button class="modal-close" onclick="closeChronicCarePlanModal()">✕</button>
+    </div>
+    <div class="basic-info-head">
+      <div class="basic-info-avatar" id="chronic-care-avatar">👤</div>
+      <div>
+        <div class="basic-info-name" id="chronic-care-name">—</div>
+        <div class="basic-info-meta" id="chronic-care-meta">—</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;font-size:13px;">
+      <div><span style="color:var(--gray-mid);">โรค/แพ้:</span> <strong id="chronic-care-disease">—</strong></div>
+      <div><span style="color:var(--gray-mid);">ยาสำรอง:</span> <span id="chronic-care-medicine">—</span></div>
+      <div><span style="color:var(--gray-mid);">ติดต่อฉุกเฉิน:</span> <span id="chronic-care-phone">—</span></div>
+      <div><span style="color:var(--gray-mid);">อัปเดตล่าสุด:</span> <span id="chronic-care-updated">—</span></div>
+    </div>
+    <div class="form-group" style="margin-top:14px;">
+      <label>หมายเหตุจากนักเรียน/ผู้ปกครอง</label>
+      <div id="chronic-care-note" style="font-size:13px;color:var(--gray-dark);background:var(--gray-light);padding:10px 12px;border-radius:8px;min-height:40px;">—</div>
+    </div>
+    <div class="form-group" id="chronic-care-plan-wrap">
+      <label>แผนการดูแล (เจ้าหน้าที่อนามัย)</label>
+      <textarea id="chronic-care-plan-text" rows="5" style="width:100%;" placeholder="เจ้าหน้าที่อนามัยกรอกแผนการดูแลที่นี่..."></textarea>
+      <p id="chronic-care-readonly-hint" style="display:none;font-size:12px;color:var(--gray-mid);margin:6px 0 0;">แผนการดูแลจะแสดงเมื่อเจ้าหน้าที่อนามัยบันทึกแล้ว</p>
+    </div>
+    <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-secondary" onclick="closeChronicCarePlanModal()">ปิด</button>
+      <button type="button" class="btn btn-primary" id="chronic-care-save-btn" onclick="saveChronicCarePlanFromModal()">บันทึกแผนการดูแล</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: ประวัติการรักษานักเรียน -->
 <div class="modal-overlay" id="studentHistoryModal">
   <div class="modal basic-info-modal">
@@ -8146,6 +8197,9 @@
     role = role || (typeof getCurrentRole === 'function' ? getCurrentRole() : '');
     return role === 'nurse' || role === 'admin';
   }
+  function isExecDashboardRole(role) {
+    return isFullStaffRole(role);
+  }
   function isPublicGuest() {
     return getCurrentRole() === 'public';
   }
@@ -8162,13 +8216,12 @@
     if (id === 'environment' && isLimitedUser()) return;
     if (id === 'dashboard' && isLimitedUser()) return;
     if (id === 'school-calendar' && role !== 'teacher' && role !== 'admin') return;
-    if (id === 'report' && role === 'admin') return;
     closeMobileNav();
     document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     const panel = document.getElementById('section-' + id);
     if (panel) panel.classList.add('active');
-    if (getCurrentRole() === 'admin') {
+    if (isExecDashboardRole()) {
       var adminCharts = document.getElementById('dash-admin-charts');
       if (adminCharts) adminCharts.style.display = (id === 'dashboard') ? 'block' : 'none';
     }
@@ -8187,19 +8240,43 @@
     }
     if (id === 'chronic') {
       if (isLimitedUser()) fillStudentChronicForm();
-      else if (typeof isFullStaffRole === 'function' && isFullStaffRole()) fillChronicStaffForm();
+      else if (typeof isFullStaffRole === 'function' && isFullStaffRole()) {
+        fillChronicStaffForm();
+        refreshAssessmentDataFromSheetForStaff();
+      }
     }
-    if (id === 'disease' && isLimitedUser()) fillStudentDiseaseForm();
-    if (id === 'screening') { fillStudentScreeningForms(); renderScreeningRecords(); }
-    if (id === 'nutrition') fillStudentNutritionForm();
-    if (id === 'mental') { fillStudentMentalForm(); initMentalForms(); renderMentalRecords(); }
-    if (id === 'dashboard') renderDashboard();
-    if (id === 'school-calendar') renderSchoolCalendarPage();
-    if (id === 'emergency') renderEmergencyRecords();
     if (id === 'disease') {
+      if (isLimitedUser()) fillStudentDiseaseForm();
       renderDiseaseSituation();
       renderDiseaseReports();
+      if (typeof isFullStaffRole === 'function' && isFullStaffRole()) {
+        refreshAssessmentDataFromSheetForStaff();
+      }
     }
+    if (id === 'screening') {
+      fillStudentScreeningForms();
+      renderScreeningRecords();
+      if (typeof isFullStaffRole === 'function' && isFullStaffRole()) {
+        refreshAssessmentDataFromSheetForStaff();
+      }
+    }
+    if (id === 'nutrition') {
+      fillStudentNutritionForm();
+      if (typeof isFullStaffRole === 'function' && isFullStaffRole()) {
+        refreshAssessmentDataFromSheetForStaff();
+      }
+    }
+    if (id === 'mental') {
+      fillStudentMentalForm();
+      initMentalForms();
+      renderMentalRecords();
+      if (typeof isFullStaffRole === 'function' && isFullStaffRole()) {
+        refreshAssessmentDataFromSheetForStaff();
+      }
+    }
+    if (id === 'dashboard') renderDashboard();
+    if (id === 'school-calendar') refreshTeacherSchoolCalendar();
+    if (id === 'emergency') renderEmergencyRecords();
     if (id === 'environment') renderEnvironmentResults();
     if (id === 'visit') {
       updateLimitedUserVisitLabels(getCurrentRole());
@@ -8209,6 +8286,8 @@
           refreshStudentAppointmentFromSheet(loggedInStudentId);
         }
       } else {
+        updateVisitCalendarLayout();
+        renderSchoolCalendarBoard(loadDashboard(), canEditSchoolCalendar());
         refreshAllVisitRecordsFromSheetForStaff(function() {
           renderVisitToday();
         });
@@ -8224,7 +8303,10 @@
     if (id === 'medicine') renderMedicineStock();
     if (id === 'referral') renderReferralRecords();
     if (id === 'appointment') renderAppointmentList();
-    if (id === 'student') renderGradeChart();
+    if (id === 'student') {
+      renderGradeChart();
+      refreshStudentRegistryFromSheetForStaff();
+    }
     if (id === 'gshps' && typeof renderInfoHub === 'function') renderInfoHub();
     if (id === 'public') renderPublicHub();
     if (id === 'knowledge') renderKnowledgeHub();
@@ -8275,9 +8357,9 @@
     },
     thin: {
       meaning: 'น้ำหนักต่ำกว่าเกณฑ์เล็กน้อย อาจรับประทานอาหารไม่ครบหรือใช้พลังงานมากเกินไป',
-      risk: 'อาจอ่อนเพลily ขาดวิตามินและแร่ธาตุ หากไม่ปรับพฤติกรรมอาจพัฒนาเป็นทุพโภชนาการ',
+      risk: 'อาจอ่อนเพลีย ขาดวิตามินและแร่ธาตุ หากไม่ปรับพฤติกรรมอาจพัฒนาเป็นทุพโภชนาการ',
       advice: 'รับประทานอาหารครบ 3 มื้อ มีของว่างที่มีประโยชน์ (ผลไม้ นม ถั่ว) ออกกำลังกายสม่ำเสมอแต่ไม่หักโหม',
-      eat: 'ข้าวมื้อละ 1–1½ ทัพพี เนื้อสัตว์ ไข่ นม ผักผลไม้ ถั่ว',
+      eat: 'ข้าวมื้อละ 1–1½ ช้อนโต เนื้อสัตว์ ไข่ นม ผักผลไม้ ถั่ว',
       avoid: 'อดอาหาร ดื่มน้ำอัดลมแทนอาหาร อาหารทอดมากเกินไป'
     },
     normal: {
@@ -8290,7 +8372,7 @@
     overweight: {
       meaning: 'น้ำหนักเริ่มเกินเกณฑ์ มักเกิดจากรับพลังงานมากกว่าใช้ หรือขยับตัวน้อย',
       risk: 'เสี่ยงเป็นโรคอ้วน ไขมันในเลือดสูง เบาหวาน และความดันโลหิตสูงในอนาคต',
-      advice: 'ลดของหวานและเครื่องดื่มติดฟอง ลดอาหารทอด ออกกำลังกาย 30–60 นาที/วัน ปรึกษาครูอนามัยเพื่อติดตาม',
+      advice: 'ลดของหวานและน้ำอัดลม ลดอาหารทอด ออกกำลังกาย 30–60 นาที/วัน ปรึกษาครูอนามัยเพื่อติดตาม',
       eat: 'ผักผลไม้มากขึ้น ข้าวกล้อง เนื้อไก่/ปลา น้ำเปล่า',
       avoid: 'ของทอด ขนมหวาน น้ำอัดลม อาหารกลางคืนดึก'
     },
@@ -8308,7 +8390,7 @@
   function renderNutritionAdviceBlocks(cat, bmi) {
     var info = NUTRITION_ADVICE[cat.key] || NUTRITION_ADVICE.normal;
     return '<div class="vac-edu-block" style="background:var(--green-pale);border-color:var(--green-light);">' +
-      '<h4>🎯 คำแนะนำสำหรับภาวะ「' + escNutHtml(cat.label) + '」 (BMI ' + escNutHtml(bmi) + ')</h4>' +
+      '<h4>🎯 คำแนะนำสำหรับภาวะ "' + escNutHtml(cat.label) + '" (BMI ' + escNutHtml(bmi) + ')</h4>' +
       '<p><strong>ความหมาย:</strong> ' + escNutHtml(info.meaning) + '</p></div>' +
       '<div class="vac-edu-block"><h4>⚠️ ความเสี่ยงหากไม่ดูแล</h4><p>' + escNutHtml(info.risk) + '</p></div>' +
       '<div class="vac-edu-block"><h4>💡 สิ่งที่ควรทำ</h4><p>' + escNutHtml(info.advice) + '</p></div>' +
@@ -8481,6 +8563,12 @@
     return (cls && cls !== '—') ? cls : '';
   }
   function getStudentClassFromRegistry(id) {
+    var classMap = getStudentRegistryClassMap();
+    var mapCls = classMap[canonicalStudentIdKey(id)] || classMap[String(id).trim()];
+    if (mapCls && mapCls !== '—') {
+      var mm = mapCls.match(/^(ม\.\d+)/);
+      return mm ? mm[1] : mapCls;
+    }
     const tr = Array.from(document.querySelectorAll('#section-student tbody tr')).find(function(r) {
       return r.cells[0] && visitIdMatch(r.cells[0].textContent.trim(), id);
     });
@@ -8493,9 +8581,17 @@
   function setSelectByValueOrText(selectId, value) {
     var el = document.getElementById(selectId);
     if (!el || !value) return;
+    value = String(value).trim();
     for (var i = 0; i < el.options.length; i++) {
       if (el.options[i].value === value || el.options[i].text === value) {
         el.value = el.options[i].value;
+        return;
+      }
+    }
+    for (var j = 0; j < el.options.length; j++) {
+      var opt = el.options[j];
+      if (opt.value && value.indexOf(opt.value) === 0) {
+        el.value = opt.value;
         return;
       }
     }
@@ -8667,7 +8763,7 @@
     else records.push(record);
     try { localStorage.setItem('sh-nutrition', JSON.stringify(records)); } catch (e) {}
     renderNutritionFollowup(records);
-    syncToSheetQuiet(SHEET_NAMES.nutrition, buildNutritionSheetRow(record));
+    syncUpsertRowQuiet(SHEET_NAMES.nutrition, 'รหัสนักเรียน', buildNutritionSheetRow(record));
     alert('✅ บันทึกข้อมูลโภชนาการสำเร็จ!');
     notifyReportDataChanged();
     refreshAllScreeningResultViews(record.id);
@@ -8698,7 +8794,7 @@
     'มักหงุดหงิด อารมณ์เสียบ่อยๆ',
     'มักอยู่กันคนเดียว ชอบเล่นคนเดียวมากกว่าเล่นกับเพื่อน',
     'มักทำตามที่ผู้อื่นบอก โดยผู้ใหญ่ต้องคอยสังเกต',
-    'มากังวลบ่อยๆ',
+    'มักกังวลบ่อยๆ',
     'ยินดีช่วยเหลือเมื่อมีคนได้รับบาดเจ็บ เป็นทุกข์ หรือไม่สบายใจ',
     'มีสมาธิสั้น ห้วนๆ ง่าย',
     'มีเพื่อนสนิทอย่างน้อยหนึ่งคน หรือมีเพื่อนที่ชอบเล่นด้วย',
@@ -8980,6 +9076,7 @@
     if (typeof syncMentalToSheetQuiet === 'function') {
       syncMentalToSheetQuiet(record, type);
     }
+    if (typeof notifyReportDataChanged === 'function') notifyReportDataChanged();
     alert('✅ บันทึกผล' + tool + ' สำเร็จ!');
   }
 
@@ -9010,6 +9107,7 @@
     if (!recordKey) return;
     if (!confirm('ลบรายการฉีดวัคซีนนี้?')) return;
     var before = loadVaccineRecordsFromStorage();
+    var removed = before.find(function(r) { return getVaccineRecordKey(r) === recordKey; });
     var records = before.filter(function(r) {
       return getVaccineRecordKey(r) !== recordKey;
     });
@@ -9018,6 +9116,9 @@
       return;
     }
     saveVaccineRecordsToStorage(records);
+    if (removed && typeof deleteVaccineFromSheetQuiet === 'function') {
+      deleteVaccineFromSheetQuiet(removed);
+    }
   }
   function renderVaccineRecords(records) {
     const tbody = document.getElementById('vaccine-records-body');
@@ -9039,7 +9140,11 @@
   function renderStudentVaccineHistory() {
     const tbody = document.getElementById('vaccine-student-history-body');
     const scopeId = getLimitedUserScopeId();
-    if (!tbody || !scopeId) return;
+    if (!tbody) return;
+    if (!scopeId) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-mid);padding:16px;">กรอกเลขประจำตัวนักเรียนเพื่อดูประวัติ</td></tr>';
+      return;
+    }
     let records = [];
     try { records = JSON.parse(localStorage.getItem('sh-vaccine') || '[]'); } catch (e) {}
     const mine = records.filter(function(r) { return visitIdMatch(r.id, scopeId); })
@@ -9214,7 +9319,7 @@
     el.innerHTML = PHYS_POSE_ITEMS.map(function(item) {
       var checkText = pubMode && item.checkPub ? item.checkPub : item.check;
       var imgs = (item.images || []).map(function(img) {
-        return '<div class="phys-pose-img-wrap"><img src="' + img.src + '" alt="' + img.alt + '" loading="lazy" onclick="window.open(this.src,\'_blank\')"><span>' + img.cap + '</span></div>';
+        return '<div class="phys-pose-img-wrap"><img src="' + img.src + '" alt="' + img.alt + '" loading="lazy" referrerpolicy="no-referrer" onclick="window.open(this.src,\'_blank\')"><span>' + img.cap + '</span></div>';
       }).join('');
       return '<li><div class="check-box" onclick="toggleCheck(this)"></div><div class="phys-pose-content"><div><strong>ท่า ' + item.poses + ':</strong> ' + item.title + ' — ' + checkText + '</div>' +
         (imgs ? '<div class="phys-pose-imgs">' + imgs + '</div>' : '') + '</div></li>';
@@ -9379,6 +9484,7 @@
     if (!id || !name) { alert('⚠️ กรุณากรอกเลขประจำตัวและชื่อ-นามสกุล'); return; }
     updateHearingResult();
     var result = getScreeningSelectText('hear-result');
+    if (!result) { alert('⚠️ กรุณาเลือกผลการตรวจหูขวาและหูซ้าย'); return; }
     var now = new Date();
     addScreeningRecord(Object.assign({
       type: 'hearing', id: id, name: name,
@@ -9462,6 +9568,18 @@
     } else if (getCurrentRole() === 'teacher') {
       if (idEl) idEl.value = '';
       if (nameEl) nameEl.value = '';
+    }
+    var vacCardTitle = document.querySelector('#vaccine-student-card .card-title');
+    var vacDesc = document.querySelector('#vaccine-student-card .vac-student-desc');
+    var vacHistTitle = document.querySelector('#vaccine-student-card .vac-student-history-title');
+    if (getCurrentRole() === 'teacher') {
+      if (vacCardTitle) vacCardTitle.innerHTML = '<span>👤</span>เลือกนักเรียน';
+      if (vacDesc) vacDesc.textContent = 'กรอกเลขประจำตัวนักเรียน แล้วกดสถานะในตารางด้านล่างเพื่ออัปเดตความประสงค์รับวัคซีน';
+      if (vacHistTitle) vacHistTitle.textContent = 'ประวัติการรับวัคซีนของนักเรียน';
+    } else {
+      if (vacCardTitle) vacCardTitle.innerHTML = '<span>💉</span>บันทึกการรับวัคซีน';
+      if (vacDesc) vacDesc.textContent = 'กรอกวัคซีนที่ได้รับ ระบบจะส่งข้อมูลไปยังครู / เจ้าหน้าที่อนามัย / ผู้บริหาร';
+      if (vacHistTitle) vacHistTitle.textContent = 'ประวัติการรับวัคซีนของฉัน';
     }
     renderStudentVaccineHistory();
     renderVaccineSchedule();
@@ -9622,9 +9740,25 @@
       aftercare: def.aftercare || 'พักผ่อน ดื่มน้ำมาก สังเกตอาการหลังฉีด หากผิดปกติให้แจ้งครูหรือพยาบาลโรงเรียน'
     };
   }
+  function canManageStudentVaccineChoice(studentId) {
+    if (!isLimitedUser()) return false;
+    var scopeId = getLimitedUserScopeId();
+    return !!scopeId && visitIdMatch(studentId, scopeId);
+  }
+  function openStudentVaccineChoiceModalFromIndex(index) {
+    var scopeId = getLimitedUserScopeId();
+    if (!scopeId) {
+      alert('⚠️ กรุณากรอกเลขประจำตัวนักเรียนก่อนเลือกสถานะ');
+      var idEl = document.getElementById('vac-stu-id');
+      if (idEl) {
+        try { idEl.focus(); idEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { idEl.focus(); }
+      }
+      return;
+    }
+    openStudentVaccineChoiceModal(scopeId, index);
+  }
   function openStudentVaccineChoiceModal(studentId, index) {
-    if (getCurrentRole() !== 'student' || !loggedInStudentId) return;
-    if (!visitIdMatch(studentId, loggedInStudentId)) return;
+    if (!canManageStudentVaccineChoice(studentId)) return;
     var items = loadVaccineSchedule();
     if (index < 0 || index >= items.length) return;
     _vacChoiceModalCtx = { studentId: String(studentId), index: index };
@@ -9678,8 +9812,7 @@
   function saveStudentVaccineChoiceFromModal() {
     var ctx = _vacChoiceModalCtx;
     if (!ctx.studentId || ctx.index < 0) return;
-    if (getCurrentRole() !== 'student' || !loggedInStudentId) return;
-    if (!visitIdMatch(ctx.studentId, loggedInStudentId)) return;
+    if (!canManageStudentVaccineChoice(ctx.studentId)) return;
     var picked = document.querySelector('input[name="vac-choice-status"]:checked');
     if (!picked) {
       alert('⚠️ กรุณาเลือกสถานะ');
@@ -9702,11 +9835,11 @@
     return 'vac-stu-status-none';
   }
   function renderStudentVaccineStatusPicker(studentId, index) {
-    var status = getStudentVaccineChoice(studentId, index);
+    var status = studentId ? getStudentVaccineChoice(studentId, index) : '';
     var cls = getStudentVaccineStatusClass(status);
     var label = status || 'กดเลือกสถานะ';
-    return '<button type="button" class="vac-stu-status-btn ' + cls + '" onclick="openStudentVaccineChoiceModal(\'' +
-      escVacScheduleAttr(String(studentId)) + '\',' + index + ')" title="กดเพื่อเลือกสถานะและอ่านข้อมูลวัคซีน" aria-label="' +
+    return '<button type="button" class="vac-stu-status-btn ' + cls + '" onclick="openStudentVaccineChoiceModalFromIndex(' +
+      index + ')" title="กดเพื่อเลือกสถานะและอ่านข้อมูลวัคซีน" aria-label="' +
       escVacScheduleAttr(label) + '">' +
       '<span class="vac-stu-status-dot" aria-hidden="true"></span>' +
       '<span class="vac-stu-status-label">' + escVacScheduleHtml(label) + '</span></button>';
@@ -9723,7 +9856,7 @@
       '" onblur="updateVaccineScheduleField(' + index + ', \'' + field + '\', this.value)" aria-label="' + label + '">';
   }
   function renderVaccineScheduleStatusCell(status, index, editable, studentId) {
-    if (studentId && getCurrentRole() === 'student') {
+    if (isLimitedUser()) {
       return renderStudentVaccineStatusPicker(studentId, index);
     }
     if (editable) {
@@ -9738,8 +9871,7 @@
     const tbody = document.getElementById('vaccine-schedule-body');
     if (!tbody) return;
     const editable = STAFF_ROLES.includes(getCurrentRole()) && getCurrentRole() !== 'admin';
-    const isStudentView = getCurrentRole() === 'student' && loggedInStudentId;
-    const studentId = isStudentView ? loggedInStudentId : '';
+    const studentId = isLimitedUser() ? getLimitedUserScopeId() : '';
     const items = loadVaccineSchedule();
     tbody.innerHTML = items.map(function(item, i) {
       return '<tr><td>' + (i + 1) + '</td>' +
@@ -9781,7 +9913,18 @@
     try { records = JSON.parse(localStorage.getItem('sh-chronic') || '[]'); } catch (e) {}
     return records;
   }
+  function dedupeChronicRecords(records) {
+    var byId = {};
+    (records || []).forEach(function(r) {
+      var id = String(r.id || '').trim();
+      if (!id) return;
+      var prev = byId[id];
+      if (!prev || (r.savedAt || 0) >= (prev.savedAt || 0)) byId[id] = r;
+    });
+    return Object.keys(byId).map(function(k) { return byId[k]; });
+  }
   function saveChronicToStorage(records) {
+    records = dedupeChronicRecords(records);
     try { localStorage.setItem('sh-chronic', JSON.stringify(records)); } catch (e) {}
     chronicRecordsCache = records;
   }
@@ -9792,29 +9935,42 @@
     });
   }
   function ensureChronicSeed() {
-    var records = loadChronicFromStorage();
-    var cleaned = purgeChronicSampleRecords(records);
-    if (cleaned.length !== records.length) {
-      saveChronicToStorage(cleaned);
-      records = cleaned;
-    }
-    return records;
+    var raw = loadChronicFromStorage();
+    var cleaned = purgeChronicSampleRecords(dedupeChronicRecords(raw));
+    if (cleaned.length !== raw.length) saveChronicToStorage(cleaned);
+    else chronicRecordsCache = cleaned;
+    return cleaned;
   }
   function renderChronicRecords(records) {
     const tbody = document.getElementById('chronic-records-body');
     if (!tbody) return;
+    records = dedupeChronicRecords(records);
     if (!records.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray-mid);padding:18px;">ยังไม่มีรายการบันทึก</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray-mid);padding:18px;">ยังไม่มีรายการบันทึก</td></tr>';
       return;
     }
+    const canDelete = typeof isFullStaffRole === 'function' && isFullStaffRole();
     const sorted = records.slice().sort(function(a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
     tbody.innerHTML = sorted.map(function(r) {
       const badge = getChronicBadgeClass(r.disease);
       const med = r.medicine ? r.medicine + (r.medicine.indexOf('✅') === -1 ? ' ✅' : '') : '—';
-      const cls = r.class || '—';
-      return '<tr><td>' + r.id + '</td><td>' + r.name + '</td><td>' + cls +
-        '</td><td><span class="badge ' + badge + '">' + r.disease + '</span></td><td>' + med +
-        '</td><td>' + (r.phone || '—') + '</td><td><button type="button" class="btn btn-sm btn-secondary">ดูแผน</button></td></tr>';
+      var cls = r.class && r.class !== '—' ? r.class : '';
+      if (!cls && typeof getStudentFullClassFromRegistry === 'function') {
+        cls = getStudentFullClassFromRegistry(r.id) || '—';
+      }
+      if (!cls) cls = '—';
+      var idEsc = String(r.id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      var keyEsc = getChronicRecordKey(r).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      var hasPlan = !!(r.carePlan && String(r.carePlan).trim());
+      var btnLabel = hasPlan ? 'ดูแผน ✓' : 'ดูแผน';
+      var btnCls = hasPlan ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
+      var delBtn = canDelete
+        ? '<button type="button" class="btn btn-sm btn-danger" onclick="deleteChronicRecord(\'' + keyEsc + '\')">ลบ</button>'
+        : '';
+      return '<tr><td>' + escVisitHtml(r.id) + '</td><td>' + escVisitHtml(r.name) + '</td><td>' + escVisitHtml(cls) +
+        '</td><td><span class="badge ' + badge + '">' + escVisitHtml(r.disease) + '</span></td><td>' + escVisitHtml(med) +
+        '</td><td>' + escVisitHtml(r.phone || '—') + '</td><td><button type="button" class="' + btnCls +
+        '" onclick="openChronicCarePlanModal(\'' + idEsc + '\')">' + btnLabel + '</button></td><td>' + delBtn + '</td></tr>';
     }).join('');
   }
   function filterChronicRecords() {
@@ -9834,16 +9990,19 @@
     var medEl = document.getElementById(prefix + '-medicine');
     var phoneEl = document.getElementById(prefix + '-phone');
     var noteEl = document.getElementById(prefix + '-note');
+    var careEl = document.getElementById(prefix + '-care');
     if (record) {
       if (diseaseEl) diseaseEl.value = record.disease || '';
       if (medEl) medEl.value = (record.medicine || '').replace(/\s*✅\s*$/, '');
       if (phoneEl) phoneEl.value = record.phone || '';
       if (noteEl) noteEl.value = record.note || '';
+      if (careEl) careEl.value = record.carePlan || '';
     } else {
       if (diseaseEl) diseaseEl.value = '';
       if (medEl) medEl.value = '';
       if (phoneEl) phoneEl.value = '';
       if (noteEl) noteEl.value = '';
+      if (careEl) careEl.value = '';
     }
   }
   function loadChronicRecordIntoForm(prefix, id) {
@@ -9904,7 +10063,43 @@
     if (typeof refreshAllScreeningResultViews === 'function') refreshAllScreeningResultViews(scopeId);
     if (typeof notifyReportDataChanged === 'function') notifyReportDataChanged();
   }
+  function deleteChronicRecord(recordKey) {
+    if (typeof isFullStaffRole !== 'function' || !isFullStaffRole()) return;
+    if (!recordKey) return;
+    if (!confirm('ต้องการลบรายการนี้หรือไม่?')) return;
+    var records = loadChronicFromStorage();
+    var removed = null;
+    var next = records.filter(function(r) {
+      if (getChronicRecordKey(r) === recordKey) {
+        removed = r;
+        return false;
+      }
+      return true;
+    });
+    if (!removed) {
+      alert('ไม่พบรายการที่ต้องการลบ');
+      return;
+    }
+    saveChronicToStorage(next);
+    if (removed.id && typeof syncDeleteRowQuiet === 'function' && typeof SHEET_NAMES !== 'undefined' && SHEET_NAMES.chronic) {
+      syncDeleteRowQuiet(SHEET_NAMES.chronic, 'รหัสนักเรียน', String(removed.id));
+    }
+    if (typeof refreshStudentRegistryRow === 'function') refreshStudentRegistryRow(removed.id);
+    var staffIdEl = document.getElementById('chr-staff-id');
+    if (staffIdEl && visitIdMatch(staffIdEl.value, removed.id)) {
+      populateChronicFormFields('chr-staff', null);
+      if (staffIdEl) staffIdEl.value = '';
+      var staffNameEl = document.getElementById('chr-staff-name');
+      if (staffNameEl) staffNameEl.value = '';
+    }
+    if (typeof filterChronicRecords === 'function') filterChronicRecords();
+    if (typeof renderStudentChronicHistory === 'function') renderStudentChronicHistory();
+    if (typeof refreshAllScreeningResultViews === 'function') refreshAllScreeningResultViews(removed.id);
+    if (typeof notifyReportDataChanged === 'function') notifyReportDataChanged();
+    alert('✅ ลบรายการแล้ว');
+  }
   window.deleteStudentChronic = deleteStudentChronic;
+  window.deleteChronicRecord = deleteChronicRecord;
   window.deleteVaccineRecord = deleteVaccineRecord;
   function fillStudentChronicForm() {
     if (!isLimitedUser()) return;
@@ -10006,6 +10201,7 @@
       return;
     }
     const cls = (typeof getStudentFullClassFromRegistry === 'function') ? getStudentFullClassFromRegistry(id) : '';
+    const carePlan = (document.getElementById('chr-staff-care').value || '').trim();
     upsertChronicRecord({
       id: id,
       name: name,
@@ -10014,6 +10210,9 @@
       medicine: medicine,
       phone: phone,
       note: note,
+      carePlan: carePlan,
+      careUpdatedAt: carePlan ? new Date().toLocaleString('th-TH') : undefined,
+      careUpdatedBy: carePlan ? 'เจ้าหน้าที่อนามัย' : undefined,
       recordedAt: new Date().toLocaleString('th-TH'),
       savedAt: Date.now()
     });
@@ -10027,14 +10226,101 @@
   window.fillChronicStaffFromName = fillChronicStaffFromName;
   window.clearChronicStaffForm = clearChronicStaffForm;
   window.saveStaffChronic = saveStaffChronic;
+  var _chronicCareModalId = '';
+  function openChronicCarePlanModal(studentId) {
+    studentId = String(studentId || '').trim();
+    if (!studentId) return;
+    var records = loadChronicFromStorage();
+    var record = records.find(function(r) { return visitIdMatch(r.id, studentId); });
+    if (!record) {
+      alert('ไม่พบข้อมูลนักเรียนรหัส ' + studentId);
+      return;
+    }
+    _chronicCareModalId = studentId;
+    var student = (typeof lookupStudent === 'function') ? lookupStudent(studentId) : null;
+    var avatarEl = document.getElementById('chronic-care-avatar');
+    if (avatarEl) avatarEl.textContent = (student && student.gender === 'ญ') ? '👧' : '👦';
+    var nameEl = document.getElementById('chronic-care-name');
+    if (nameEl) nameEl.textContent = record.name || '—';
+    var cls = record.class && record.class !== '—' ? record.class : '';
+    if (!cls && typeof getStudentFullClassFromRegistry === 'function') {
+      cls = getStudentFullClassFromRegistry(studentId) || '—';
+    }
+    var metaEl = document.getElementById('chronic-care-meta');
+    if (metaEl) metaEl.textContent = 'รหัส ' + studentId + (cls ? ' · ' + cls : '');
+    var diseaseEl = document.getElementById('chronic-care-disease');
+    if (diseaseEl) diseaseEl.textContent = record.disease || '—';
+    var medEl = document.getElementById('chronic-care-medicine');
+    if (medEl) medEl.textContent = (record.medicine || '—').replace(/\s*✅\s*$/, '');
+    var phoneEl = document.getElementById('chronic-care-phone');
+    if (phoneEl) phoneEl.textContent = record.phone || '—';
+    var noteEl = document.getElementById('chronic-care-note');
+    if (noteEl) noteEl.textContent = (record.note && String(record.note).trim()) ? record.note : '—';
+    var updatedEl = document.getElementById('chronic-care-updated');
+    if (updatedEl) {
+      updatedEl.textContent = record.careUpdatedAt
+        ? (record.careUpdatedAt + (record.careUpdatedBy ? ' · ' + record.careUpdatedBy : ''))
+        : (record.recordedAt || '—');
+    }
+    var planEl = document.getElementById('chronic-care-plan-text');
+    var canEdit = typeof isFullStaffRole === 'function' && isFullStaffRole();
+    if (planEl) {
+      planEl.value = record.carePlan || '';
+      planEl.readOnly = !canEdit;
+    }
+    var saveBtn = document.getElementById('chronic-care-save-btn');
+    if (saveBtn) saveBtn.style.display = canEdit ? '' : 'none';
+    var hintEl = document.getElementById('chronic-care-readonly-hint');
+    if (hintEl) hintEl.style.display = (!canEdit && !(record.carePlan && String(record.carePlan).trim())) ? '' : 'none';
+    var modal = document.getElementById('chronicCarePlanModal');
+    if (modal) modal.classList.add('open');
+  }
+  function closeChronicCarePlanModal() {
+    _chronicCareModalId = '';
+    var modal = document.getElementById('chronicCarePlanModal');
+    if (modal) modal.classList.remove('open');
+  }
+  function saveChronicCarePlanFromModal() {
+    if (typeof isFullStaffRole !== 'function' || !isFullStaffRole()) return;
+    var studentId = _chronicCareModalId;
+    if (!studentId) return;
+    var planEl = document.getElementById('chronic-care-plan-text');
+    var carePlan = planEl ? (planEl.value || '').trim() : '';
+    var records = loadChronicFromStorage();
+    var record = records.find(function(r) { return visitIdMatch(r.id, studentId); });
+    if (!record) {
+      alert('ไม่พบข้อมูลนักเรียน');
+      return;
+    }
+    record.carePlan = carePlan;
+    record.careUpdatedAt = new Date().toLocaleString('th-TH');
+    record.careUpdatedBy = getCurrentRole() === 'nurse' ? 'เจ้าหน้าที่อนามัย' : 'ผู้บริหาร';
+    upsertChronicRecord(record);
+    populateChronicFormFields('chr-staff', record);
+    closeChronicCarePlanModal();
+    alert('✅ บันทึกแผนการดูแลแล้ว');
+  }
+  window.openChronicCarePlanModal = openChronicCarePlanModal;
+  window.closeChronicCarePlanModal = closeChronicCarePlanModal;
+  window.saveChronicCarePlanFromModal = saveChronicCarePlanFromModal;
   function upsertChronicRecord(record) {
     let records = loadChronicFromStorage();
     if (!record.recordId) {
       record.recordId = 'chr-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
     }
     const idx = records.findIndex(function(r) { return String(r.id) === String(record.id); });
-    if (idx >= 0) records[idx] = record;
-    else records.unshift(record);
+    if (idx >= 0) {
+      var existing = records[idx];
+      if (existing.recordId) record.recordId = existing.recordId;
+      if (record.carePlan == null || record.carePlan === '') {
+        if (existing.carePlan) record.carePlan = existing.carePlan;
+        if (existing.careUpdatedAt) record.careUpdatedAt = existing.careUpdatedAt;
+        if (existing.careUpdatedBy) record.careUpdatedBy = existing.careUpdatedBy;
+      }
+      records[idx] = Object.assign({}, existing, record);
+    } else {
+      records.unshift(record);
+    }
     saveChronicToStorage(records);
     filterChronicRecords();
     syncToSheetQuiet(SHEET_NAMES.chronic, buildChronicSheetRow(record));
@@ -10074,6 +10360,10 @@
   })();
 
   var medicineStockCache = [];
+  var _visitRecordsMemCache = null;
+  var _adminLiveCache = null;
+  var _adminChartRenderTimer = null;
+  var _dashRenderCoalesceTimer = null;
   function loadMedicineStock() {
     try { return JSON.parse(localStorage.getItem('sh-medicine-stock') || '[]'); } catch (e) { return []; }
   }
@@ -10187,14 +10477,19 @@
     var tbody = document.getElementById('medicine-stock-body');
     if (!tbody) return;
     if (!records.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-mid);padding:18px;">ยังไม่มียาในคลัง — บันทึกรับยาเข้าคลังด้านบน</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray-mid);padding:18px;">ยังไม่มียาในคลัง — บันทึกรับยาเข้าคลังด้านบน</td></tr>';
     } else {
+      var canDelete = typeof isFullStaffRole === 'function' && isFullStaffRole();
       tbody.innerHTML = records.slice().sort(function(a, b) {
         return String(a.name || '').localeCompare(String(b.name || ''), 'th');
       }).map(function(r) {
+        var idEsc = String(r.id || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        var delBtn = canDelete
+          ? '<button type="button" class="btn btn-sm btn-danger" onclick="deleteMedicineStockItem(\'' + idEsc + '\')">ลบ</button>'
+          : '';
         return '<tr><td>' + escMedicineHtml(r.name) + '</td><td>' + escMedicineHtml(r.category || '—') +
           '</td><td>' + (parseInt(r.qty, 10) || 0).toLocaleString('th-TH') + '</td><td>' + escMedicineHtml(r.unit || '—') +
-          '</td><td>' + escMedicineHtml(r.expiry || '—') + '</td><td>' + buildMedicineStatusSelectHtml(r) + '</td></tr>';
+          '</td><td>' + escMedicineHtml(r.expiry || '—') + '</td><td>' + buildMedicineStatusSelectHtml(r) + '</td><td>' + delBtn + '</td></tr>';
       }).join('');
     }
     renderMedicineStockAlert(records);
@@ -10322,11 +10617,34 @@
     }
     alert('✅ บันทึกรับยาเข้าคลังสำเร็จ — ' + item.name + ' คงเหลือ ' + (parseInt(item.qty, 10) || 0).toLocaleString('th-TH') + ' ' + (item.unit || ''));
   }
+  function deleteMedicineStockItem(medId) {
+    if (typeof isFullStaffRole !== 'function' || !isFullStaffRole()) return;
+    medId = String(medId || '').trim();
+    if (!medId) return;
+    var records = loadMedicineStock();
+    var removed = records.find(function(r) { return r.id === medId; });
+    if (!removed) {
+      alert('ไม่พบรายการยาที่ต้องการลบ');
+      return;
+    }
+    if (!confirm('ต้องการลบ "' + (removed.name || medId) + '" ออกจากคลังหรือไม่?')) return;
+    records = records.filter(function(r) { return r.id !== medId; });
+    saveMedicineStock(records);
+    var purchaseSel = document.getElementById('med-purchase-select');
+    if (purchaseSel && purchaseSel.value === medId) clearMedicinePurchaseForm();
+    renderMedicineStock();
+    if (typeof deleteMedicineFromSheetQuiet === 'function') {
+      deleteMedicineFromSheetQuiet(medId);
+    }
+    if (typeof notifyReportDataChanged === 'function') notifyReportDataChanged();
+    alert('✅ ลบรายการยาออกจากคลังแล้ว');
+  }
   window.updateMedicineStockStatus = updateMedicineStockStatus;
   window.renderMedicineStock = renderMedicineStock;
   window.fillMedicinePurchaseFromSelect = fillMedicinePurchaseFromSelect;
   window.clearMedicinePurchaseForm = clearMedicinePurchaseForm;
   window.saveMedicinePurchase = saveMedicinePurchase;
+  window.deleteMedicineStockItem = deleteMedicineStockItem;
   window.focusMedicinePurchaseForm = focusMedicinePurchaseForm;
   (function initMedicineStock() {
     medicineStockCache = ensureMedicineStockSeed();
@@ -10423,6 +10741,7 @@
     }
     return {
       id: item.id ? String(item.id) : ('cal-' + index + '-' + (dateStart || 'x')),
+      sheetOrder: item.sheetOrder != null && item.sheetOrder !== '' ? item.sheetOrder : undefined,
       dateStart: dateStart,
       dateEnd: dateEnd || dateStart,
       text: item.text || def.text || '',
@@ -10457,8 +10776,12 @@
     return dayIso >= startIso && dayIso <= end;
   }
   function getSchoolCalendarEvents(data) {
-    return (data && data.calendar ? data.calendar : []).filter(function(item) {
-      return item && item.dateStart && item.text;
+    data = data || loadDashboard();
+    var cal = Array.isArray(data.calendar) ? data.calendar : [];
+    return cal.map(function(item, i) {
+      return normalizeDashCalendarItem(item, i);
+    }).filter(function(item) {
+      return item.dateStart && item.text && !isCalendarItemDeleted(item, item.id);
     });
   }
   function jumpSchoolCalToIso(iso) {
@@ -10604,28 +10927,36 @@
   function canEditSchoolCalendar() {
     return getCurrentRole() === 'nurse';
   }
-  function refreshSchoolCalendarViews(data) {
-    renderSchoolCalendarBoard(data, canEditSchoolCalendar());
-    if (document.getElementById('school-cal-standalone-saved-list')) {
-      renderSchoolCalendarSavedList(data, false, 'school-cal-standalone-saved-list');
-    }
-  }
-  function renderSchoolCalendarPage() {
-    var data = loadDashboard();
+  function syncAllSchoolCalendarViews(data) {
+    data = data || loadDashboard();
+    var editable = canEditSchoolCalendar();
+    setSchoolCalendarFormEditable(!!editable);
     renderSchoolCalendarGrid(data);
+    renderSchoolCalendarSavedList(data, editable, 'school-cal-saved-list');
     renderSchoolCalendarSavedList(data, false, 'school-cal-standalone-saved-list');
   }
-  function renderSchoolCalendarBoard(data, editable) {
-    editable = !!editable && canEditSchoolCalendar();
+  function refreshSchoolCalendarViews(data) {
+    syncAllSchoolCalendarViews(data);
+  }
+  function renderTeacherSchoolCalendarViews(data) {
+    syncAllSchoolCalendarViews(data);
+  }
+  function refreshTeacherSchoolCalendar(callback) {
     var role = getCurrentRole();
-    if (role === 'admin') {
-      renderSchoolCalendarGrid(data);
+    if (role !== 'teacher' && role !== 'admin') {
+      if (callback) callback();
       return;
     }
-    if (role === 'teacher') return;
-    setSchoolCalendarFormEditable(!!editable);
-    renderSchoolCalendarSavedList(data, editable);
-    renderSchoolCalendarGrid(data);
+    refreshCalendarFromSheet(function() {
+      renderTeacherSchoolCalendarViews(loadDashboard());
+      if (callback) callback();
+    });
+  }
+  function renderSchoolCalendarPage() {
+    syncAllSchoolCalendarViews(loadDashboard());
+  }
+  function renderSchoolCalendarBoard(data, editable) {
+    syncAllSchoolCalendarViews(data);
   }
   function resetSchoolCalendarForm() {
     ['school-cal-title', 'school-cal-start', 'school-cal-end', 'school-cal-note'].forEach(function(id) {
@@ -10659,16 +10990,88 @@
       dateStart: dateStart,
       dateEnd: dateEnd,
       text: text,
-      done: false
+      done: false,
+      sheetOrder: typeof getNextCalendarSheetOrder === 'function'
+        ? getNextCalendarSheetOrder(d.calendar)
+        : d.calendar.length + 1
     };
     d.calendar.push(item);
     saveDashboard(d);
     if (typeof syncCalendarToSheetQuiet === 'function') {
-      syncCalendarToSheetQuiet(item, d.calendar.length - 1);
+      syncCalendarToSheetQuiet(item, d.calendar.length - 1, d.calendar);
     }
     resetSchoolCalendarForm();
     jumpSchoolCalToIso(dateStart);
-    refreshSchoolCalendarViews(d);
+    syncAllSchoolCalendarViews(loadDashboard());
+    alert('✅ บันทึกลงปฏิทินแล้ว — อัปเดตทุกหน้าที่แสดงปฏิทินโรงเรียนแล้ว');
+  }
+  var calendarSheetRefreshPending = false;
+  function mergeCalendarFromSheet(sheetItems) {
+    if (!sheetItems || !sheetItems.length) return;
+    var stored = {};
+    try { stored = JSON.parse(localStorage.getItem('sh-dashboard') || '{}'); } catch (e) {}
+    if (!Array.isArray(stored.calendar)) {
+      stored.calendar = loadDashboard().calendar.map(function(c) {
+        return { id: c.id, dateStart: c.dateStart, dateEnd: c.dateEnd, text: c.text, done: !!c.done };
+      });
+    }
+    var byId = {};
+    var bySig = {};
+    stored.calendar.forEach(function(item, idx) {
+      var norm = normalizeDashCalendarItem(item, idx);
+      if (norm.id) byId[norm.id] = norm;
+      bySig[calendarItemSignature(norm)] = norm;
+    });
+    sheetItems.forEach(function(item) {
+      if (isCalendarItemDeleted(item, item.id)) return;
+      var sig = calendarItemSignature(item);
+      if (item.id && byId[item.id]) {
+        var existing = byId[item.id];
+        existing.dateStart = item.dateStart || existing.dateStart;
+        existing.dateEnd = item.dateEnd || existing.dateEnd;
+        existing.text = item.text || existing.text;
+        existing.done = !!item.done;
+        if (item.sheetOrder != null && item.sheetOrder !== '') existing.sheetOrder = item.sheetOrder;
+        return;
+      }
+      if (bySig[sig]) return;
+      stored.calendar.push({
+        id: item.id,
+        sheetOrder: item.sheetOrder,
+        dateStart: item.dateStart,
+        dateEnd: item.dateEnd,
+        text: item.text,
+        done: !!item.done,
+        fromSheet: true
+      });
+      byId[item.id] = item;
+      bySig[sig] = item;
+    });
+    try { localStorage.setItem('sh-dashboard', JSON.stringify(stored)); } catch (e) {}
+  }
+  function refreshCalendarFromSheet(callback) {
+    if (typeof fetchAllCalendarFromSheet !== 'function') {
+      if (callback) callback();
+      return;
+    }
+    if (calendarSheetRefreshPending) {
+      if (callback) callback();
+      return;
+    }
+    calendarSheetRefreshPending = true;
+    fetchAllCalendarFromSheet().then(function(sheetItems) {
+      calendarSheetRefreshPending = false;
+      if (sheetItems && sheetItems.length) {
+        mergeCalendarFromSheet(sheetItems);
+      }
+      var data = loadDashboard();
+      syncAllSchoolCalendarViews(data);
+      if (typeof renderDashboard === 'function') renderDashboard();
+      if (callback) callback();
+    }).catch(function() {
+      calendarSheetRefreshPending = false;
+      if (callback) callback();
+    });
   }
   function deleteSchoolCalendarEvent(id) {
     if (!canEditSchoolCalendar() || !id) return;
@@ -10691,7 +11094,10 @@
     rememberCalendarDeletion(removed);
     d.calendar = next;
     saveDashboard(d);
-    refreshSchoolCalendarViews(d);
+    if (typeof deleteCalendarFromSheetQuiet === 'function') {
+      deleteCalendarFromSheetQuiet(removed);
+    }
+    syncAllSchoolCalendarViews(loadDashboard());
   }
   function schoolCalPrevMonth() {
     closeSchoolCalDayModal();
@@ -10771,7 +11177,7 @@
       { type: 'ok', icon: '✅', text: 'ชั่งน้ำหนัก/วัดส่วนสูง ครั้งที่ 1 ครบ 100% แล้ว' }
     ],
     kpi: [
-      { label: 'คะแนน GSHS', value: '92%', sub: 'ระดับดีเยี่ยม' },
+      { label: 'คะแนน GSHPS', value: '92%', sub: 'ระดับดีเยี่ยม' },
       { label: 'ครอบคลุมตรวจสุขภาพ', value: '78%', sub: 'เป้าหมาย 80%' },
       { label: 'วัคซีน HPV', value: '91%', sub: '222/244 คน' },
       { label: 'ลดอุบัติเหตุ', value: '-18%', sub: 'เทียบปีก่อน' },
@@ -10811,7 +11217,7 @@
     vaccine: [
       { label: 'HPV (ม.2)', count: 222 },
       { label: 'ไข้หวัดใหญ่', count: 486 },
-      { label: 'ไข้หวัดไข้เลือดออก', count: 412 },
+      { label: 'ไข้เลือดออก', count: 412 },
       { label: 'dT', count: 318 },
       { label: 'MMR', count: 156 }
     ],
@@ -10933,17 +11339,516 @@
       return { label: row.label, pct: row.pct, count: count, total: base };
     });
   }
-  function getAdminDashboardDisplayData() {
-    var total = getStudentRegistryCount() || 2725;
+  function countAdminUpcomingAppointments() {
+    var count = 0;
+    try {
+      var extras = JSON.parse(localStorage.getItem('sh-student-health') || '{}');
+      var todayKey = localDateKey(new Date());
+      Object.keys(extras).forEach(function(k) {
+        var appt = extras[k] && extras[k].appointment;
+        if (!appt || !appt.date) return;
+        var datePart = String(appt.date).trim().slice(0, 10);
+        if (datePart >= todayKey) count++;
+      });
+    } catch (e) {}
+    return count;
+  }
+  function classifyVisitHealthBucket(result) {
+    var res = result || '';
+    if (res.indexOf('ส่งต่อ') !== -1) return 'ป่วย/ส่งต่อ';
+    if (res.indexOf('พัก') !== -1) return 'เฝ้าระวัง';
+    if (res.indexOf('ผู้ปกครอง') !== -1) return 'เฝ้าระวัง';
+    if (res.indexOf('กลับชั้น') !== -1) return 'ปกติ';
+    return 'เฝ้าระวัง';
+  }
+  function computeAdminExtraStats() {
+    var chronicIds = {};
+    loadChronicFromStorage().forEach(function(r) {
+      if (r.id) chronicIds[String(r.id).trim()] = true;
+    });
+    var nutritionById = {};
+    loadNutritionRecords().filter(isRecordThisYear).forEach(function(r) {
+      if (!r.id) return;
+      var id = String(r.id).trim();
+      if (!nutritionById[id] || (r.savedAt || 0) > (nutritionById[id].savedAt || 0)) nutritionById[id] = r;
+    });
+    var nutritionRisk = 0;
+    Object.keys(nutritionById).forEach(function(id) {
+      var cat = getNutritionCategory(parseFloat(nutritionById[id].bmi));
+      if (cat && cat.label !== 'ปกติ') nutritionRisk++;
+    });
+    var mentalById = {};
+    loadMentalRecords().filter(isRecordThisYear).forEach(function(r) {
+      if (!r.id) return;
+      var id = String(r.id).trim();
+      if (!mentalById[id] || (r.savedAt || 0) > (mentalById[id].savedAt || 0)) mentalById[id] = r;
+    });
+    var mentalRisk = 0;
+    Object.keys(mentalById).forEach(function(id) {
+      var risk = mentalById[id].risk || '';
+      if (risk.indexOf('สูง') !== -1 || risk.indexOf('ปานกลาง') !== -1) mentalRisk++;
+    });
+    var meds = medicineStockCache.length ? medicineStockCache : loadMedicineStock();
+    var medicineLow = meds.filter(function(m) {
+      var st = getMedicineStockStatus(m);
+      return st.label === 'ใกล้หมด' || st.label === 'สั่งด่วน';
+    }).length;
     return {
-      staffCount: DASHBOARD_ADMIN_SAMPLE.staffCount,
-      todayVisit: DASHBOARD_ADMIN_SAMPLE.todayVisit,
-      referralCount: DASHBOARD_ADMIN_SAMPLE.referralCount,
-      screenedCount: DASHBOARD_ADMIN_SAMPLE.screenedCount,
-      alertCount: DASHBOARD_ADMIN_SAMPLE.alertCount,
-      warningText: DASHBOARD_ADMIN_SAMPLE.warningText,
-      coverage: getAdminSampleCoverage(total)
+      chronicCount: Object.keys(chronicIds).length,
+      emergencyYear: loadEmergencyRecords().filter(isRecordThisYear).length,
+      appointmentsUpcoming: countAdminUpcomingAppointments(),
+      medicineLow: medicineLow,
+      nutritionRisk: nutritionRisk,
+      mentalRisk: mentalRisk
     };
+  }
+  function computeAdminAlerts() {
+    var alerts = [];
+    getActiveNurseAlerts().slice(0, 2).forEach(function(a) {
+      var typeMap = { critical: 'danger', warning: 'warn', info: 'info', success: 'ok' };
+      alerts.push({
+        type: typeMap[a.priority] || 'warn',
+        icon: getNurseAlertPriorityMeta(a.priority).icon || '⚠️',
+        text: a.text
+      });
+    });
+    var lowMed = (medicineStockCache.length ? medicineStockCache : loadMedicineStock()).filter(function(m) {
+      var st = getMedicineStockStatus(m);
+      return st.label === 'สั่งด่วน' || st.label === 'ใกล้หมด';
+    });
+    if (lowMed.length) {
+      alerts.push({
+        type: 'danger',
+        icon: '🚨',
+        text: lowMed.slice(0, 2).map(function(m) {
+          return m.name + ' เหลือ ' + m.qty + ' ' + (m.unit || '');
+        }).join(' และ ') + ' — ใกล้หมด'
+      });
+    }
+    loadDiseaseSituation().forEach(function(d) {
+      if (d.disease) {
+        alerts.push({
+          type: 'warn',
+          icon: '⚠️',
+          text: (d.disease || '') + (d.patients ? ' ' + d.patients : '') +
+            (d.room ? ' — ' + d.room : '')
+        });
+      }
+    });
+    var upcoming = countAdminUpcomingAppointments();
+    if (upcoming > 0) {
+      alerts.push({ type: 'info', icon: '📅', text: 'มีใบนัดตรวจสุขภาพ ' + upcoming + ' ราย — รอพบตามนัด' });
+    }
+    var nutCov = computeLiveCoverageItems().find(function(c) {
+      return c.label.indexOf('ชั่งน้ำหนัก') !== -1 && c.label.indexOf('1') !== -1;
+    });
+    if (nutCov && nutCov.pct >= 100) {
+      alerts.push({ type: 'ok', icon: '✅', text: 'ชั่งน้ำหนัก/วัดส่วนสูง ครั้งที่ 1 ครบ ' + nutCov.pct + '% แล้ว' });
+    } else if (nutCov && nutCov.count > 0) {
+      alerts.push({ type: 'ok', icon: '✅', text: 'ชั่งน้ำหนัก/วัดส่วนสูง ครั้งที่ 1 ดำเนินการแล้ว ' + nutCov.pct + '%' });
+    }
+    return alerts.slice(0, 6);
+  }
+  function computeAdminKpi() {
+    var kpis = [];
+    var gs = (typeof getGshpsResult === 'function') ? getGshpsResult() : null;
+    if (gs) {
+      var level = gs.pct >= 90 ? 'ระดับดีเยี่ยม' : (gs.pct >= 80 ? 'ระดับดี' : 'อยู่ระหว่างพัฒนา');
+      kpis.push({ label: 'คะแนน GSHPS', value: gs.pct + '%', sub: level });
+    }
+    var cov = computeLiveCoverageItems();
+    var healthCov = cov.find(function(c) { return c.label.indexOf('ตรวจสุขภาพ') !== -1; });
+    if (healthCov) {
+      kpis.push({ label: 'ครอบคลุมตรวจสุขภาพ', value: healthCov.pct + '%', sub: healthCov.count + '/' + healthCov.total + ' คน' });
+    }
+    var hpv = computeHpvCoverageStats();
+    if (hpv.target || hpv.dose1) {
+      kpis.push({ label: 'วัคซีน HPV', value: hpv.dose1Pct + '%', sub: hpv.dose1 + '/' + (hpv.target || '—') + ' คน' });
+    }
+    var pendingRef = loadReferralRecords().filter(function(r) { return r.status === 'รอติดตาม'; }).length;
+    kpis.push({ label: 'ส่งต่อ รพ.', value: String(pendingRef), sub: 'รอติดตาม' });
+    kpis.push({ label: 'เฝ้าระวังโรคติดต่อ', value: String(loadDiseaseSituation().length), sub: 'สถานการณ์ปัจจุบัน' });
+    kpis.push({ label: 'เหตุฉุกเฉิน', value: String(loadEmergencyRecords().filter(isRecordThisYear).length), sub: 'ปี ' + new Date().getFullYear() });
+    return kpis;
+  }
+  function computeAdminRecentActivity() {
+    return loadVisitRecords().slice().sort(function(a, b) {
+      return (getVisitRecordTime(b) || 0) - (getVisitRecordTime(a) || 0);
+    }).slice(0, 6).map(function(r) {
+      var ts = getVisitRecordTime(r);
+      var timeStr = ts ? new Date(ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '—';
+      var info = typeof getVisitBadgeInfo === 'function' ? getVisitBadgeInfo(r.result) : { text: r.result || '—' };
+      return {
+        time: timeStr,
+        id: r.id || '—',
+        name: r.name || '—',
+        cls: r.class || '—',
+        symptom: r.symptom || r.diagnosis || '—',
+        status: info.text || r.result || '—'
+      };
+    });
+  }
+  function computeAdminHealthSummary() {
+    var byId = {};
+    loadVisitRecords().filter(isRecordThisYear).forEach(function(r) {
+      if (!r.id) return;
+      var id = String(r.id).trim();
+      var ts = getVisitRecordTime(r) || 0;
+      if (!byId[id] || ts > byId[id].ts) {
+        byId[id] = { ts: ts, bucket: classifyVisitHealthBucket(r.result) };
+      }
+    });
+    var counts = { 'ปกติ': 0, 'เฝ้าระวัง': 0, 'เสี่ยง': 0, 'ป่วย/ส่งต่อ': 0 };
+    Object.keys(byId).forEach(function(id) {
+      var b = byId[id].bucket;
+      if (counts[b] != null) counts[b]++;
+    });
+    var colors = { 'ปกติ': '#22c55e', 'เฝ้าระวัง': '#f59e0b', 'เสี่ยง': '#f97316', 'ป่วย/ส่งต่อ': '#ef4444' };
+    var items = Object.keys(counts).map(function(k) {
+      return { label: k, count: counts[k], color: colors[k] };
+    }).filter(function(it) { return it.count > 0; });
+    return { items: items, totalScreened: Object.keys(byId).length, isDemo: !Object.keys(byId).length };
+  }
+  function computeAdminHealthTrend() {
+    var months = [];
+    var now = new Date();
+    for (var i = 1; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({
+        label: d.toLocaleDateString('th-TH', { month: 'short' }),
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        buckets: { 'ปกติ': 0, 'เฝ้าระวัง': 0, 'เสี่ยง': 0, 'ป่วย/ส่งต่อ': 0 }
+      });
+    }
+    loadVisitRecords().filter(isRecordThisYear).forEach(function(r) {
+      var ts = getVisitRecordTime(r);
+      if (!ts) return;
+      var rd = new Date(ts);
+      var bucket = classifyVisitHealthBucket(r.result);
+      months.forEach(function(m) {
+        if (rd.getFullYear() === m.year && rd.getMonth() === m.month && m.buckets[bucket] != null) {
+          m.buckets[bucket]++;
+        }
+      });
+    });
+    var seriesColors = { 'ปกติ': '#22c55e', 'เฝ้าระวัง': '#f59e0b', 'เสี่ยง': '#f97316', 'ป่วย/ส่งต่อ': '#ef4444' };
+    var series = Object.keys(seriesColors).map(function(k) {
+      return { label: k === 'ป่วย/ส่งต่อ' ? 'ป่วย' : k, color: seriesColors[k], data: months.map(function(m) { return m.buckets[k]; }) };
+    }).filter(function(s) { return s.data.some(function(v) { return v > 0; }); });
+    return {
+      trend: { labels: months.map(function(m) { return m.label; }), series: series },
+      isDemo: !series.length
+    };
+  }
+  function computeAdminGauges() {
+    var gs = (typeof getGshpsResult === 'function') ? getGshpsResult() : null;
+    if (gs && gs.components && gs.components.length) {
+      var colors = ['#3b82f6', '#22c55e', '#8b5cf6', '#14b8a6', '#f59e0b'];
+      return {
+        items: gs.components.slice(0, 5).map(function(c, i) {
+          var max = Number(c.max) || 100;
+          var score = Number(c.score) || 0;
+          return {
+            label: c.name || ('องค์ประกอบ ' + (i + 1)),
+            pct: max ? Math.round(score / max * 100) : 0,
+            color: colors[i % colors.length]
+          };
+        }),
+        isDemo: false
+      };
+    }
+    var cov = computeLiveCoverageItems().slice(0, 5);
+    return {
+      items: cov.map(function(c, i) {
+        return {
+          label: typeof shortenCoverageLabel === 'function' ? shortenCoverageLabel(c.label) : c.label,
+          pct: c.pct,
+          color: ADMIN_CHART_COLORS[i % ADMIN_CHART_COLORS.length]
+        };
+      }),
+      isDemo: !cov.some(function(c) { return c.count > 0; })
+    };
+  }
+  function computeAdminClinicGrouped() {
+    var months = [];
+    var now = new Date();
+    for (var i = 1; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ label: d.toLocaleDateString('th-TH', { month: 'short' }), year: d.getFullYear(), month: d.getMonth(), visits: 0, students: {} });
+    }
+    loadVisitRecords().concat(loadEmergencyRecords()).forEach(function(r) {
+      var ts = getVisitRecordTime(r) || (typeof getRecordTimestamp === 'function' ? getRecordTimestamp(r) : 0);
+      if (!ts) return;
+      var rd = new Date(ts);
+      months.forEach(function(m) {
+        if (rd.getFullYear() === m.year && rd.getMonth() === m.month) {
+          m.visits++;
+          if (r.id) m.students[String(r.id).trim()] = true;
+        }
+      });
+    });
+    var items = months.map(function(m) {
+      return { label: m.label, visits: m.visits, students: Object.keys(m.students).length };
+    });
+    return { items: items, isDemo: months.every(function(m) { return !m.visits; }) };
+  }
+  function computeAdminReferralGrid() {
+    var stats = computeAdminReferralStats();
+    var iconMap = {
+      'ส่งต่อโรงพยาบาล': { icon: '🏥', color: '#ef4444' },
+      'รอผู้ปกครอง': { icon: '👨‍👩‍👧', color: '#f59e0b' },
+      'พักพยาบาล': { icon: '🛏️', color: '#3b82f6' },
+      'กลับชั้นแล้ว': { icon: '✅', color: '#22c55e' },
+      'ติดตามแล้ว': { icon: '📋', color: '#8b5cf6' }
+    };
+    var items = stats.items.map(function(it) {
+      var meta = iconMap[it.label] || { icon: '📋', color: it.color };
+      return { icon: meta.icon, label: it.label, count: it.count, color: meta.color || it.color };
+    });
+    var pendingRef = loadReferralRecords().filter(function(r) { return r.status === 'รอติดตาม'; }).length;
+    if (pendingRef > 0) {
+      items.unshift({ icon: '🏥', label: 'รอติดตาม', count: pendingRef, color: '#ef4444' });
+    }
+    return { items: items, isDemo: !items.length };
+  }
+  function computeAdminVaccineRings() {
+    var hpv = computeHpvCoverageStats();
+    var rings = [];
+    if (hpv.target || hpv.dose1) {
+      rings.push({ label: 'HPV (ม.2)', pct: hpv.dose1Pct, color: '#ec4899' });
+    }
+    var fluIds = {};
+    var ironIds = {};
+    loadVaccineRecords().filter(isRecordThisYear).forEach(function(r) {
+      if (!r.id) return;
+      var v = (r.vaccine || '').toLowerCase();
+      var id = String(r.id).trim();
+      if (v.indexOf('ไข้หวัด') !== -1 || v.indexOf('flu') !== -1) fluIds[id] = true;
+      if (v.indexOf('เหล็ก') !== -1 || v.indexOf('iron') !== -1) ironIds[id] = true;
+    });
+    var total = getStudentRegistryCount() || 1;
+    if (Object.keys(fluIds).length) {
+      rings.push({ label: 'ไข้หวัดใหญ่', pct: pctFromCount(Object.keys(fluIds).length, total), color: '#3b82f6' });
+    }
+    if (Object.keys(ironIds).length) {
+      rings.push({ label: 'เสริมธาตุเหล็ก', pct: pctFromCount(Object.keys(ironIds).length, total), color: '#f59e0b' });
+    }
+    if (!rings.length) {
+      computeAdminVaccineStats().items.slice(0, 3).forEach(function(v, i) {
+        rings.push({ label: v.label.length > 14 ? v.label.slice(0, 14) + '…' : v.label, pct: pctFromCount(v.count, total), color: ADMIN_CHART_COLORS[i] });
+      });
+    }
+    return { items: rings, isDemo: !rings.length };
+  }
+  function computeAdminScreeningChart() {
+    var bloodShort = String.fromCharCode(0x0e42, 0x0e25, 0x0e2b, 0x0e34, 0x0e15, 0x0e08, 0x0e32, 0x0e07);
+    var typeLabels = { vision: 'สายตา', hearing: 'ได้ยิน', blood: bloodShort, oral: 'ช่องปาก', physical: 'ร่างกาย', colorblind: 'ตาบอดสี' };
+    var counts = {};
+    loadScreeningRecords().filter(isRecordThisYear).forEach(function(r) {
+      var key = typeLabels[r.type] || r.type || 'อื่นๆ';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    var items = Object.keys(counts).map(function(k) { return { label: k, count: counts[k] }; })
+      .sort(function(a, b) { return b.count - a.count; });
+    return { items: items, isDemo: !items.length };
+  }
+  function computeAdminNutritionChart() {
+    var colors = { 'ปกติ': '#2d8a5e', 'เริ่มอ้วน': '#f59e0b', 'อ้วน': '#ef4444', 'ผอม': '#3b82f6', 'ผอมมาก': '#8b5cf6' };
+    var byId = {};
+    loadNutritionRecords().filter(isRecordThisYear).forEach(function(r) {
+      if (!r.id) return;
+      var id = String(r.id).trim();
+      if (!byId[id] || (r.savedAt || 0) > (byId[id].savedAt || 0)) byId[id] = r;
+    });
+    var counts = {};
+    Object.keys(byId).forEach(function(id) {
+      var cat = getNutritionCategory(parseFloat(byId[id].bmi));
+      var label = cat ? cat.label : 'ปกติ';
+      counts[label] = (counts[label] || 0) + 1;
+    });
+    var items = Object.keys(counts).map(function(k) {
+      return { label: k, count: counts[k], color: colors[k] || ADMIN_CHART_COLORS[0] };
+    }).sort(function(a, b) { return b.count - a.count; });
+    return { items: items, isDemo: !items.length };
+  }
+  function computeAdminChronicChart() {
+    var counts = {};
+    loadChronicFromStorage().forEach(function(r) {
+      var key = (r.disease || 'ไม่ระบุ').trim();
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    var items = Object.keys(counts).map(function(k, i) {
+      return { label: k, count: counts[k], color: ADMIN_CHART_COLORS[i % ADMIN_CHART_COLORS.length] };
+    }).sort(function(a, b) { return b.count - a.count; }).slice(0, 8);
+    return { items: items, isDemo: !items.length };
+  }
+  function computeAdminMentalChart() {
+    var byId = {};
+    loadMentalRecords().filter(isRecordThisYear).forEach(function(r) {
+      if (!r.id) return;
+      var id = String(r.id).trim();
+      if (!byId[id] || (r.savedAt || 0) > (byId[id].savedAt || 0)) byId[id] = r;
+    });
+    var normal = 0, mid = 0, high = 0;
+    Object.keys(byId).forEach(function(id) {
+      var risk = byId[id].risk || '';
+      if (risk.indexOf('สูง') !== -1) high++;
+      else if (risk.indexOf('ปานกลาง') !== -1) mid++;
+      else normal++;
+    });
+    var items = [
+      { label: 'ปกติ/ต่ำ', count: normal, color: '#2d8a5e' },
+      { label: 'เสี่ยงปานกลาง', count: mid, color: '#f59e0b' },
+      { label: 'เสี่ยงสูง', count: high, color: '#ef4444' }
+    ].filter(function(it) { return it.count > 0; });
+    return { items: items, isDemo: !Object.keys(byId).length };
+  }
+  function computeAdminDiseaseWatch() {
+    var counts = {};
+    loadDiseaseSituation().forEach(function(d) {
+      var key = (d.disease || 'อื่นๆ').trim();
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    loadDiseaseReports().filter(function(r) { return r.source === 'student'; }).forEach(function(r) {
+      var key = (r.disease || r.symptom || 'รายงานนักเรียน').trim();
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    var items = Object.keys(counts).map(function(k, i) {
+      return { label: k, count: counts[k], color: ADMIN_CHART_COLORS[i % ADMIN_CHART_COLORS.length] };
+    }).sort(function(a, b) { return b.count - a.count; }).slice(0, 6);
+    return { items: items, isDemo: !items.length };
+  }
+  function computeAdminEmergencyMonthly() {
+    var months = [];
+    var now = new Date();
+    for (var i = 1; i >= 0; i--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ label: d.toLocaleDateString('th-TH', { month: 'short' }), year: d.getFullYear(), month: d.getMonth(), count: 0, color: '#ef4444' });
+    }
+    loadEmergencyRecords().forEach(function(r) {
+      var ts = r.savedAt || (typeof getRecordTimestamp === 'function' ? getRecordTimestamp(r) : 0);
+      if (!ts) return;
+      var rd = new Date(ts);
+      months.forEach(function(m) {
+        if (rd.getFullYear() === m.year && rd.getMonth() === m.month) m.count++;
+      });
+    });
+    return { items: months.map(function(m) { return { label: m.label, count: m.count, color: m.color }; }), isDemo: months.every(function(m) { return !m.count; }) };
+  }
+  function computeAdminGradeVisits() {
+    var levels = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
+    var colors = ['#2d8a5e', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#14b8a6'];
+    var counts = {};
+    levels.forEach(function(l) { counts[l] = 0; });
+    loadVisitRecords().filter(isRecordThisYear).forEach(function(r) {
+      var cls = r.class || (typeof getStudentClassForVisit === 'function' ? getStudentClassForVisit(r.id) : '');
+      if (!cls) return;
+      for (var i = 0; i < levels.length; i++) {
+        if (cls.indexOf(levels[i]) === 0) { counts[levels[i]]++; break; }
+      }
+    });
+    var items = levels.map(function(l, i) {
+      return { label: l, count: counts[l], color: colors[i] };
+    });
+    return { items: items, isDemo: !items.some(function(it) { return it.count > 0; }) };
+  }
+  function computeAdminMedicineStockChart() {
+    var meds = (medicineStockCache.length ? medicineStockCache : loadMedicineStock()).slice(0, 8);
+    var items = meds.map(function(m, i) {
+      var min = parseInt(m.minStock, 10) || 50;
+      var qty = parseInt(m.qty, 10) || 0;
+      var pct = min ? Math.min(100, Math.round(qty / min * 100)) : 100;
+      var st = getMedicineStockStatus(m);
+      var color = st.label === 'สั่งด่วน' ? '#ef4444' : (st.label === 'ใกล้หมด' ? '#f59e0b' : '#22c55e');
+      return { label: m.name || 'ยา', count: pct, color: color, unit: '%' };
+    });
+    return { items: items, isDemo: !items.length };
+  }
+  function computeAdminAppointmentGrid() {
+    var stats = { upcoming: 0, done: 0, overdue: 0, cancelled: 0 };
+    try {
+      var extras = JSON.parse(localStorage.getItem('sh-student-health') || '{}');
+      var todayKey = localDateKey(new Date());
+      Object.keys(extras).forEach(function(k) {
+        var appt = extras[k] && extras[k].appointment;
+        if (!appt || !appt.date) return;
+        var datePart = String(appt.date).trim().slice(0, 10);
+        if (appt.done || appt.completed) stats.done++;
+        else if (datePart < todayKey) stats.overdue++;
+        else stats.upcoming++;
+      });
+    } catch (e) {}
+    var items = [
+      { icon: '📅', label: 'รอพบตามนัด', count: stats.upcoming, color: '#3b82f6' },
+      { icon: '✅', label: 'พบแล้ว', count: stats.done, color: '#22c55e' },
+      { icon: '⏰', label: 'เลยกำหนด', count: stats.overdue, color: '#f59e0b' },
+      { icon: '❌', label: 'ยกเลิก', count: stats.cancelled, color: '#94a3b8' }
+    ].filter(function(it) { return it.count > 0; });
+    return { items: items, isDemo: !items.length };
+  }
+  function invalidateAdminLiveCache() {
+    _adminLiveCache = null;
+  }
+  function invalidateVisitRecordsCache() {
+    _visitRecordsMemCache = null;
+  }
+  function computeAdminLiveData() {
+    if (_adminLiveCache) return _adminLiveCache;
+    var dash = loadDashboard();
+    var visits = loadVisitRecords();
+    var todayCount = visits.filter(function(r) {
+      return r.id && String(r.id).trim() && isVisitPeriodToday(r);
+    }).length;
+    var screened = {};
+    loadScreeningRecords().filter(isRecordThisYear).forEach(function(r) {
+      if (r.id) screened[String(r.id).trim()] = true;
+    });
+    loadNutritionRecords().filter(isRecordThisYear).forEach(function(r) {
+      if (r.id) screened[String(r.id).trim()] = true;
+    });
+    var screenedN = Object.keys(screened).length;
+    var pendingRef = loadReferralRecords().filter(function(r) { return r.status === 'รอติดตาม'; }).length;
+    var alerts = computeAdminAlerts();
+    var warningParts = alerts.slice(0, 2).map(function(a) { return a.text; });
+    var result = {
+      display: {
+        staffCount: dash.staffCount,
+        todayVisit: todayCount || dash.todayVisit || 0,
+        referralCount: pendingRef,
+        screenedCount: screenedN || dash.screenedCount || 0,
+        alertCount: getActiveNurseAlerts().length,
+        warningText: warningParts.join(' · ') || dash.warningText || 'ไม่มีการแจ้งเตือนที่ต้องติดตาม',
+        coverage: computeLiveCoverageItems()
+      },
+      extraStats: computeAdminExtraStats(),
+      alerts: alerts,
+      kpi: computeAdminKpi(),
+      recentActivity: computeAdminRecentActivity(),
+      charts: {
+        health: computeAdminHealthProblems(),
+        healthSummary: computeAdminHealthSummary(),
+        healthTrend: computeAdminHealthTrend(),
+        gauges: computeAdminGauges(),
+        referralGrid: computeAdminReferralGrid(),
+        clinicGrouped: computeAdminClinicGrouped(),
+        vaccineRings: computeAdminVaccineRings(),
+        screening: computeAdminScreeningChart(),
+        nutrition: computeAdminNutritionChart(),
+        chronic: computeAdminChronicChart(),
+        mental: computeAdminMentalChart(),
+        diseaseWatch: computeAdminDiseaseWatch(),
+        emergencyMonthly: computeAdminEmergencyMonthly(),
+        gradeVisits: computeAdminGradeVisits(),
+        medicineStock: computeAdminMedicineStockChart(),
+        appointmentGrid: computeAdminAppointmentGrid()
+      }
+    };
+    _adminLiveCache = result;
+    return result;
+  }
+  function getAdminDashboardDisplayData() {
+    return computeAdminLiveData().display;
   }
   function loadDashboard() {
     let data = {};
@@ -11036,44 +11941,56 @@
         countHint + '</div>';
     }).join('');
   }
-  function updateDashboardLayoutForRole() {
+  function updateVisitCalendarLayout() {
     var isAdmin = getCurrentRole() === 'admin';
     var isNurse = getCurrentRole() === 'nurse';
     var calCard = document.getElementById('dash-calendar-card');
+    var row = document.getElementById('dash-calendar-row');
+    if (calCard) {
+      calCard.style.removeProperty('display');
+      if (isNurse) calCard.style.display = '';
+      else if (isAdmin) calCard.style.display = 'none';
+    }
+    if (row) {
+      row.style.display = (isAdmin || isNurse) ? '' : 'none';
+      if (isNurse) row.style.removeProperty('grid-template-columns');
+      else if (isAdmin) row.style.gridTemplateColumns = '1fr';
+    }
+  }
+  function updateDashboardLayoutForRole() {
+    var isExecDash = isExecDashboardRole();
+    var isNurse = getCurrentRole() === 'nurse';
     var quickMenu = document.getElementById('dash-quick-menu-card');
     var adminCharts = document.getElementById('dash-admin-charts');
-    var row = document.getElementById('dash-calendar-row');
-    if (calCard) calCard.style.display = isNurse ? '' : 'none';
     if (quickMenu) quickMenu.style.display = 'none';
     var adminExtra = document.getElementById('dash-admin-extra-stats');
     var adminAlerts = document.getElementById('dash-admin-alerts');
     var adminKpi = document.getElementById('dash-admin-kpi-card');
     var adminRecent = document.getElementById('dash-admin-recent-card');
-    if (adminExtra) adminExtra.style.display = isAdmin ? 'grid' : 'none';
-    if (adminAlerts) adminAlerts.style.display = isAdmin ? 'grid' : 'none';
-    if (adminKpi) adminKpi.style.display = isAdmin ? 'flex' : 'none';
-    if (adminRecent) adminRecent.style.display = isAdmin ? 'block' : 'none';
-    if (row) {
-      row.style.display = (isAdmin || isNurse) ? '' : 'none';
-      row.style.gridTemplateColumns = isNurse ? '' : '1fr';
-    }
+    if (adminExtra) adminExtra.style.display = isExecDash ? 'grid' : 'none';
+    if (adminAlerts) adminAlerts.style.display = isExecDash ? 'grid' : 'none';
+    if (adminKpi) adminKpi.style.display = isExecDash ? 'flex' : 'none';
+    if (adminRecent) adminRecent.style.display = isExecDash ? 'block' : 'none';
+    updateVisitCalendarLayout();
     var dashSec = document.getElementById('section-dashboard');
     var dashActive = dashSec && dashSec.classList.contains('active');
-    if (dashSec) dashSec.classList.toggle('dash-admin-view', isAdmin);
-    document.body.classList.toggle('dash-admin-view', isAdmin);
-    var showAdminDash = isAdmin && dashActive;
-    if (adminCharts) adminCharts.style.display = showAdminDash ? 'block' : 'none';
+    if (dashSec) dashSec.classList.toggle('dash-admin-view', isExecDash);
+    document.body.classList.toggle('dash-admin-view', isExecDash);
+    document.body.classList.toggle('dash-role-nurse', isExecDash && isNurse);
+    document.body.classList.toggle('dash-role-admin', isExecDash && getCurrentRole() === 'admin');
+    var showExecDash = isExecDash && dashActive;
+    if (adminCharts) adminCharts.style.display = showExecDash ? 'block' : 'none';
     var gradeRegistry = document.getElementById('dash-grade-registry-card');
-    if (gradeRegistry) gradeRegistry.style.display = isAdmin ? 'none' : '';
+    if (gradeRegistry) gradeRegistry.style.display = isExecDash ? 'none' : '';
     var visitLabel = document.getElementById('todayVisitLabel');
     if (visitLabel) {
-      visitLabel.textContent = isAdmin
+      visitLabel.textContent = isExecDash
         ? (visitLabel.getAttribute('data-admin-text') || 'ให้บริการห้องพยาบาล')
         : (visitLabel.getAttribute('data-staff-text') || 'มารับบริการวันนี้');
     }
     var dashTitle = document.querySelector('#section-dashboard .page-header-title');
     if (dashTitle) {
-      dashTitle.textContent = isAdmin
+      dashTitle.textContent = isExecDash
         ? 'แดชบอร์ดภาพรวมงานอนามัยโรงเรียน'
         : 'แดชบอร์ดงานอนามัยโรงเรียน';
     }
@@ -11141,9 +12058,9 @@
       manager.style.display = 'none';
       return;
     }
-    var dashPanel = document.getElementById('section-dashboard');
-    var onDashboard = dashPanel && dashPanel.classList.contains('active');
-    manager.style.display = onDashboard ? '' : 'none';
+    var visitPanel = document.getElementById('section-visit');
+    var onVisit = visitPanel && visitPanel.classList.contains('active');
+    manager.style.display = onVisit ? '' : 'none';
     var records = loadNurseAlerts().slice().sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
     if (!records.length) {
       listEl.innerHTML = '<p style="font-size:12px;color:var(--gray-mid);padding:8px 0;">ยังไม่มีแจ้งเตือน — กรอกข้อความด้านบนแล้วกดเผยแพร่</p>';
@@ -11257,6 +12174,9 @@
     if (!canManageNurseAlerts()) return;
     if (!confirm('ลบแจ้งเตือนนี้?')) return;
     saveNurseAlerts(loadNurseAlerts().filter(function(a) { return a.id !== id; }));
+    if (typeof syncDeleteRowQuiet === 'function') {
+      syncDeleteRowQuiet(SHEET_NAMES.nurseAlert, 'รหัสแจ้งเตือน', id);
+    }
   }
   window.publishNurseAlert = publishNurseAlert;
   window.toggleNurseAlertActive = toggleNurseAlertActive;
@@ -11273,24 +12193,43 @@
   window.openSchoolCalDayDetail = openSchoolCalDayDetail;
   window.closeSchoolCalDayModal = closeSchoolCalDayModal;
   window.renderSchoolCalendarPage = renderSchoolCalendarPage;
+  window.syncAllSchoolCalendarViews = syncAllSchoolCalendarViews;
 
   function renderDashboard() {
     if (!staffRolesReady()) return;
     var role = getCurrentRole();
     if (!role || STAFF_ROLES.indexOf(role) === -1) return;
+    if (isExecDashboardRole(role)) {
+      if (_dashRenderCoalesceTimer) return;
+      _dashRenderCoalesceTimer = setTimeout(function() {
+        _dashRenderCoalesceTimer = null;
+        renderDashboardNow();
+      }, 16);
+      return;
+    }
+    renderDashboardNow();
+  }
+  function renderDashboardNow() {
+    if (!staffRolesReady()) return;
+    var role = getCurrentRole();
+    if (!role || STAFF_ROLES.indexOf(role) === -1) return;
     const editable = canEditSchoolCalendar();
-    const isAdmin = getCurrentRole() === 'admin';
-    const data = isAdmin ? getAdminDashboardDisplayData() : loadDashboard();
+    const isExecDash = isExecDashboardRole(role);
+    var live = null;
+    var data = isExecDash ? (live = computeAdminLiveData(), live.display) : loadDashboard();
     visitCount = parseInt(data.todayVisit, 10) || 0;
-    renderDashStatNum('dashStaffCount', data.staffCount, 'staffCount', editable);
-    renderDashStatNum('todayVisit', data.todayVisit, 'todayVisit', editable);
-    renderDashStatNum('referralCount', data.referralCount, 'referralCount', editable);
-    renderDashStatNum('screenedCount', data.screenedCount, 'screenedCount', editable);
+    renderDashStatNum('dashStaffCount', data.staffCount, 'staffCount', editable && !isExecDash);
+    renderDashStatNum('todayVisit', data.todayVisit, 'todayVisit', editable && !isExecDash);
+    renderDashStatNum('referralCount', data.referralCount, 'referralCount', editable && !isExecDash);
+    renderDashStatNum('screenedCount', data.screenedCount, 'screenedCount', editable && !isExecDash);
     renderDashStatNum('alertCount', getActiveNurseAlerts().length, 'alertCount', false);
     renderSchoolCalendarBoard(loadDashboard(), editable);
     updateDashboardLayoutForRole();
-    renderAdminDashboardCharts();
-    renderAdminDashboardExtras();
+    updateVisitCalendarLayout();
+    if (isExecDash) {
+      renderAdminDashboardExtras(live);
+      scheduleAdminDashboardCharts(live);
+    }
     renderNurseAlerts();
     updateStudentCounts();
   }
@@ -11299,10 +12238,10 @@
     if (!el) return;
     el.textContent = (parseInt(value, 10) || 0).toLocaleString('th-TH');
   }
-  function renderAdminDashboardExtras() {
-    if (getCurrentRole() !== 'admin') return;
-    var sample = DASHBOARD_ADMIN_SAMPLE;
-    var xs = sample.extraStats || {};
+  function renderAdminDashboardExtras(live) {
+    if (!isExecDashboardRole()) return;
+    if (!live) live = computeAdminLiveData();
+    var xs = live.extraStats || {};
     renderAdminStatNum('admin-stat-chronic', xs.chronicCount);
     renderAdminStatNum('admin-stat-emergency', xs.emergencyYear);
     renderAdminStatNum('admin-stat-appointment', xs.appointmentsUpcoming);
@@ -11310,15 +12249,16 @@
     renderAdminStatNum('admin-stat-nutrition', xs.nutritionRisk);
     renderAdminStatNum('admin-stat-mental', xs.mentalRisk);
     var alertsEl = document.getElementById('dash-admin-alerts');
-    if (alertsEl && sample.alerts) {
-      alertsEl.innerHTML = sample.alerts.map(function(a) {
+    if (alertsEl) {
+      var alertList = live.alerts && live.alerts.length ? live.alerts : [{ type: 'info', icon: 'ℹ️', text: 'ไม่มีการแจ้งเตือนที่ต้องติดตาม' }];
+      alertsEl.innerHTML = alertList.map(function(a) {
         return '<div class="dash-admin-alert-item ' + escDashHtml(a.type) + '"><span>' + a.icon +
           '</span><div>' + escDashHtml(a.text) + '</div></div>';
       }).join('');
     }
     var kpiRow = document.getElementById('dash-admin-kpi-row');
-    if (kpiRow && sample.kpi) {
-      kpiRow.innerHTML = sample.kpi.map(function(k) {
+    if (kpiRow && live.kpi && live.kpi.length) {
+      kpiRow.innerHTML = live.kpi.map(function(k) {
         return '<div class="dash-admin-kpi"><div class="dash-admin-kpi-val">' + escDashHtml(k.value) +
           '</div><div class="dash-admin-kpi-label">' + escDashHtml(k.label) +
           (k.sub ? '<br><span style="font-size:10px;opacity:0.85;">' + escDashHtml(k.sub) + '</span>' : '') +
@@ -11326,12 +12266,17 @@
       }).join('');
     }
     var recentBody = document.getElementById('admin-recent-activity');
-    if (recentBody && sample.recentActivity) {
-      recentBody.innerHTML = sample.recentActivity.map(function(r) {
-        return '<tr><td>' + escDashHtml(r.time) + '</td><td>' + escDashHtml(r.id) +
-          '</td><td>' + escDashHtml(r.name) + '</td><td>' + escDashHtml(r.cls) +
-          '</td><td>' + escDashHtml(r.symptom) + '</td><td>' + escDashHtml(r.status) + '</td></tr>';
-      }).join('');
+    if (recentBody) {
+      var rows = live.recentActivity || [];
+      if (!rows.length) {
+        recentBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-mid);padding:18px;">ยังไม่มีรายการรักษาล่าสุด</td></tr>';
+      } else {
+        recentBody.innerHTML = rows.map(function(r) {
+          return '<tr><td>' + escDashHtml(r.time) + '</td><td>' + escDashHtml(r.id) +
+            '</td><td>' + escDashHtml(r.name) + '</td><td>' + escDashHtml(r.cls) +
+            '</td><td>' + escDashHtml(r.symptom) + '</td><td>' + escDashHtml(r.status) + '</td></tr>';
+        }).join('');
+      }
     }
   }
   function updateDashboardField(field, value) {
@@ -11411,12 +12356,51 @@
       return !sampleKeys[key];
     });
   }
+  function saveDiseaseSituation(items) {
+    try { localStorage.setItem('sh-disease-situation', JSON.stringify(items || [])); } catch (e) {}
+  }
+  function staffRecordToSituationItem(record) {
+    var measures = Array.isArray(record.measures) ? record.measures.join(', ') : (record.measures || '');
+    var patients = (record.patients || '').trim();
+    return {
+      disease: record.disease || '',
+      patients: patients ? (patients + (patients.indexOf('คน') >= 0 ? '' : ' คน')) : '—',
+      room: record.room || '—',
+      advice: measures || '—',
+      status: 'เฝ้าระวัง',
+      badge: 'badge-gold',
+      staffSavedAt: record.savedAt || 0
+    };
+  }
+  function syncDiseaseSituationFromStaffReports() {
+    var items = [];
+    try { items = purgeDiseaseSampleSituation(JSON.parse(localStorage.getItem('sh-disease-situation') || '[]')); } catch (e) {}
+    var known = {};
+    items.forEach(function(it) {
+      if (it.staffSavedAt) known[it.staffSavedAt] = 1;
+    });
+    var changed = false;
+    loadDiseaseReports().filter(function(r) { return r.source === 'staff'; }).forEach(function(r) {
+      if (!r.savedAt || known[r.savedAt]) return;
+      items.unshift(staffRecordToSituationItem(r));
+      known[r.savedAt] = 1;
+      changed = true;
+    });
+    if (changed) saveDiseaseSituation(items);
+  }
+  function appendDiseaseSituationFromStaff(record) {
+    var items = [];
+    try { items = purgeDiseaseSampleSituation(JSON.parse(localStorage.getItem('sh-disease-situation') || '[]')); } catch (e) {}
+    items.unshift(staffRecordToSituationItem(record));
+    saveDiseaseSituation(items);
+  }
   function loadDiseaseSituation() {
+    syncDiseaseSituationFromStaffReports();
     var raw = [];
     try { raw = JSON.parse(localStorage.getItem('sh-disease-situation') || '[]'); } catch (e) {}
     var items = purgeDiseaseSampleSituation(raw);
     if (items.length !== raw.length) {
-      try { localStorage.setItem('sh-disease-situation', JSON.stringify(items)); } catch (e) {}
+      saveDiseaseSituation(items);
     }
     return items.map(function(item) {
       return {
@@ -11425,7 +12409,8 @@
         room: item.room || '',
         advice: item.advice || '',
         status: item.status || '',
-        badge: item.badge || 'badge-gold'
+        badge: item.badge || 'badge-gold',
+        staffSavedAt: item.staffSavedAt || 0
       };
     });
   }
@@ -11558,6 +12543,7 @@
     document.getElementById('dis-stu-note').value = '';
     renderStudentDiseaseHistory();
     renderDiseaseReports();
+    renderDiseaseSituation();
     syncToSheetQuiet(SHEET_NAMES.diseaseStudent, buildDiseaseStudentSheetRow(record));
     notifyReportDataChanged();
     alert('🚨 ส่งรายงานด่วนสำเร็จ — เจ้าหน้าที่จะติดตามโดยเร็ว');
@@ -11594,6 +12580,8 @@
     document.getElementById('dis-date').value = '';
     document.querySelectorAll('#dis-measures input[type="checkbox"]').forEach(function(cb) { cb.checked = false; });
     syncToSheetQuiet(SHEET_NAMES.diseaseStaff, buildDiseaseStaffSheetRow(record));
+    appendDiseaseSituationFromStaff(record);
+    renderDiseaseSituation();
     renderDiseaseReports();
     notifyReportDataChanged();
     alert('🚨 รายงานด่วนสำเร็จ — บันทึกข้อมูลแล้ว');
@@ -11718,22 +12706,65 @@
     }
     return '—';
   }
-  function fillReferralFromId() {
-    const id = (document.getElementById('ref-id').value || '').trim();
-    if (!id || typeof lookupStudent !== 'function') return;
-    const student = lookupStudent(id);
-    if (!student) return;
-    const nameEl = document.getElementById('ref-name');
-    if (nameEl && student.fullName) nameEl.value = student.fullName;
-    const classEl = document.getElementById('ref-class');
-    if (classEl && student.classLevel) {
-      for (const opt of classEl.options) {
-        if (student.classLevel.indexOf(opt.value) === 0 || opt.text === student.classLevel) {
-          classEl.value = opt.value;
-          break;
-        }
+  function applyReferralStudentMeta(id) {
+    id = String(id || '').trim();
+    if (!id) return;
+    var classText = (typeof getStudentClassFromRegistry === 'function') ? getStudentClassFromRegistry(id) : '';
+    if (!classText) {
+      var fullCls = (typeof getStudentFullClassFromRegistry === 'function') ? getStudentFullClassFromRegistry(id) : '';
+      if (fullCls) {
+        var m = fullCls.match(/^(ม\.\d+)/);
+        classText = m ? m[1] : fullCls;
       }
     }
+    if (!classText) {
+      var student = (typeof lookupStudent === 'function') ? lookupStudent(id) : null;
+      if (student && student.classLevel) classText = student.classLevel;
+    }
+    if (classText) setSelectByValueOrText('ref-class', classText);
+  }
+  function fillReferralNameFromId() {
+    var idEl = document.getElementById('ref-id');
+    if (!idEl) return;
+    fillStudentNameById(idEl.value, 'ref-name');
+    applyReferralStudentMeta(idEl.value);
+  }
+  function fillReferralFromId() {
+    fillReferralNameFromId();
+  }
+  function fillReferralIdFromName() {
+    var idEl = document.getElementById('ref-id');
+    var nameEl = document.getElementById('ref-name');
+    if (!idEl || !nameEl) return;
+    var name = (nameEl.value || '').trim();
+    if (!name) return;
+    var id = (idEl.value || '').trim();
+    if (id && typeof studentNameMatchesId === 'function' && studentNameMatchesId(name, id)) {
+      applyReferralStudentMeta(id);
+      return;
+    }
+    var resolved = (typeof resolveStudentIdFromName === 'function') ? resolveStudentIdFromName(name, true) : null;
+    if (!resolved) return;
+    idEl.value = resolved.id;
+    nameEl.value = resolved.name;
+    applyReferralStudentMeta(resolved.id);
+  }
+  function fillReferralFromName() {
+    var idEl = document.getElementById('ref-id');
+    var nameEl = document.getElementById('ref-name');
+    if (!idEl || !nameEl) return;
+    var name = (nameEl.value || '').trim();
+    var id = (idEl.value || '').trim();
+    if (!name) return;
+    if (id && typeof studentNameMatchesId === 'function' && studentNameMatchesId(name, id)) {
+      applyReferralStudentMeta(id);
+      return;
+    }
+    var resolved = (typeof resolveStudentIdFromName === 'function') ? resolveStudentIdFromName(name, false) : null;
+    if (!resolved) return;
+    idEl.value = resolved.id;
+    nameEl.value = resolved.name;
+    applyReferralStudentMeta(resolved.id);
   }
   function syncReferralDashboardCount() {
     const pending = loadReferralRecords().filter(function(r) { return r.status === 'รอติดตาม'; }).length;
@@ -11746,6 +12777,25 @@
     } else if (el) {
       el.textContent = pending.toLocaleString('th-TH');
     }
+  }
+  function syncDashboardStatsFromRecords() {
+    if (typeof isFullStaffRole !== 'function' || !isFullStaffRole()) return;
+    if (isExecDashboardRole()) return;
+    var visits = loadVisitRecords();
+    if (!visits.length) return;
+    var d = loadDashboard();
+    var todayCount = visits.filter(function(r) {
+      return r.id && String(r.id).trim() && isVisitPeriodToday(r);
+    }).length;
+    if (todayCount > 0) d.todayVisit = todayCount;
+    var screened = {};
+    loadScreeningRecords().filter(isRecordThisYear).forEach(function(r) {
+      if (r.id) screened[String(r.id).trim()] = true;
+    });
+    var screenedN = Object.keys(screened).length;
+    if (screenedN > 0) d.screenedCount = screenedN;
+    saveDashboard(d);
+    syncReferralDashboardCount();
   }
   function maybeCreateReferralFromCare(record, source, silent) {
     if ((record.result || '').indexOf('ส่งต่อ') === -1) return false;
@@ -11867,6 +12917,9 @@
     if (!confirm('ลบรายการส่งต่อนี้?')) return;
     const records = loadReferralRecords().filter(function(r) { return r.uid !== uid; });
     saveReferralRecords(records);
+    if (typeof syncDeleteRowQuiet === 'function') {
+      syncDeleteRowQuiet(SHEET_NAMES.referral, 'รหัสรายการ', uid);
+    }
     syncReferralDashboardCount();
     renderReferralRecords();
     notifyReportDataChanged();
@@ -11916,6 +12969,9 @@
   window.markReferralFollowedUp = markReferralFollowedUp;
   window.deleteReferralRecord = deleteReferralRecord;
   window.fillReferralFromId = fillReferralFromId;
+  window.fillReferralNameFromId = fillReferralNameFromId;
+  window.fillReferralIdFromName = fillReferralIdFromName;
+  window.fillReferralFromName = fillReferralFromName;
   window.openStudentAppointment = openStudentAppointment;
   window.saveAppointmentFromPage = saveAppointmentFromPage;
   window.fillAppointmentPageFromId = fillAppointmentPageFromId;
@@ -12478,12 +13534,13 @@
     var visionCount = countUniqueScreeningType('vision');
     var bloodCount = countUniqueScreeningType('blood');
     var oralCount = countUniqueScreeningType('oral');
+    var bloodLabel = '\u0e04\u0e31\u0e14\u0e01\u0e23\u0e2d\u0e07' + String.fromCharCode(0x0e42, 0x0e25, 0x0e2b, 0x0e34, 0x0e15, 0x0e08, 0x0e32, 0x0e07);
     return [
       { label: 'ตรวจสุขภาพประจำปี', pct: pctFromCount(screeningAny, total), count: screeningAny, total: total },
       { label: 'ชั่งน้ำหนัก/วัดส่วนสูง ครั้งที่ 1', pct: pctFromCount(nutritionCount, total), count: nutritionCount, total: total },
       { label: 'ตรวจสายตา', pct: pctFromCount(visionCount, total), count: visionCount, total: total },
       { label: 'วัคซีน HPV', pct: hpv.dose1Pct, count: hpv.dose1, total: hpv.target || total },
-      { label: 'คัดกรองโloหิตจาง', pct: pctFromCount(bloodCount, total), count: bloodCount, total: total },
+      { label: bloodLabel, pct: pctFromCount(bloodCount, total), count: bloodCount, total: total },
       { label: 'ตรวจสุขภาพช่องปาก', pct: pctFromCount(oralCount, total), count: oralCount, total: total }
     ];
   }
@@ -12934,56 +13991,71 @@
       el.textContent = base;
     }
   }
-  function renderAdminDashboardCharts() {
-    if (getCurrentRole() !== 'admin') return;
+  function scheduleAdminDashboardCharts(live) {
+    if (!isExecDashboardRole()) return;
+    if (_adminChartRenderTimer) clearTimeout(_adminChartRenderTimer);
+    _adminChartRenderTimer = setTimeout(function() {
+      _adminChartRenderTimer = null;
+      if (!isExecDashboardRole()) return;
+      var dash = document.getElementById('section-dashboard');
+      if (!dash || !dash.classList.contains('active')) return;
+      renderAdminDashboardCharts(live || computeAdminLiveData());
+    }, 48);
+  }
+  function renderAdminDashboardCharts(live) {
+    if (!isExecDashboardRole()) return;
+    if (!live) live = computeAdminLiveData();
+    var c = live.charts;
     document.querySelectorAll('#dash-admin-charts [id$="-note"]').forEach(function(el) {
       el.removeAttribute('data-base-note');
     });
-    var summary = ADMIN_CHART_SAMPLES.healthSummary.slice();
-    var screened = DASHBOARD_ADMIN_SAMPLE.screenedCount || 1847;
-    renderAdminDonutLarge('admin-chart-health-summary', summary, screened.toLocaleString('th-TH'), 'คัดกรองแล้ว', 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-summary-note', false, true);
-    renderAdminTrendChart('admin-chart-trend', ADMIN_CHART_SAMPLES.healthTrend, 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-trend-note', false, true);
-    renderAdminExecHorizBars('admin-chart-health', ADMIN_CHART_SAMPLES.health.slice(), 5, 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-health-note', false, true);
-    renderAdminGauges('admin-chart-gauges', ADMIN_CHART_SAMPLES.gauges.slice(), 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-gauges-note', false, true);
-    var refGrid = ADMIN_CHART_SAMPLES.referralGrid.map(function(r) { return Object.assign({}, r); });
-    var pendingRef = refGrid.find(function(r) { return r.label === 'รอส่งต่อ'; });
-    if (pendingRef) pendingRef.count = DASHBOARD_ADMIN_SAMPLE.referralCount || pendingRef.count;
-    renderAdminReferralGrid('admin-chart-referral', refGrid, 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-referral-note', false, true);
-    renderAdminClinicGrouped('admin-chart-clinic', ADMIN_CHART_SAMPLES.clinicGrouped.slice(), 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-clinic-note', false, true);
-    renderAdminVaccineRings('admin-chart-vaccine', ADMIN_CHART_SAMPLES.vaccineRings.slice(), 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-vaccine-note', false, true);
-    renderAdminModuleCharts();
+    var summary = c.healthSummary.items.slice();
+    var screenedN = c.healthSummary.totalScreened || live.display.screenedCount || 0;
+    renderAdminDonutLarge('admin-chart-health-summary', summary, screenedN.toLocaleString('th-TH'), 'มีบันทึกรักษา', 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-summary-note', c.healthSummary.isDemo, false);
+    renderAdminTrendChart('admin-chart-trend', c.healthTrend.trend, 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-trend-note', c.healthTrend.isDemo, false);
+    renderAdminExecHorizBars('admin-chart-health', c.health.items.slice(), 5, 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-health-note', c.health.isDemo, false);
+    renderAdminGauges('admin-chart-gauges', c.gauges.items.slice(), 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-gauges-note', c.gauges.isDemo, false);
+    renderAdminReferralGrid('admin-chart-referral', c.referralGrid.items.slice(), 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-referral-note', c.referralGrid.isDemo, false);
+    renderAdminClinicGrouped('admin-chart-clinic', c.clinicGrouped.items.slice(), 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-clinic-note', c.clinicGrouped.isDemo, false);
+    renderAdminVaccineRings('admin-chart-vaccine', c.vaccineRings.items.slice(), 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-vaccine-note', c.vaccineRings.isDemo, false);
+    renderAdminModuleCharts(live);
   }
-  function renderAdminModuleCharts() {
-    renderAdminColumnBars('admin-chart-screening', ADMIN_CHART_SAMPLES.screening.slice(), 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-screening-note', false, true);
-    renderAdminDonut('admin-chart-nutrition', ADMIN_CHART_SAMPLES.nutrition.slice(), 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-nutrition-note', false, true);
-    renderAdminExecHorizBars('admin-chart-chronic', ADMIN_CHART_SAMPLES.chronic.slice(), 5, 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-chronic-note', false, true);
-    renderAdminReferralGrid('admin-chart-appointment', ADMIN_CHART_SAMPLES.appointmentGrid.slice(), 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-appointment-note', false, true);
-    renderAdminDonut('admin-chart-mental', ADMIN_CHART_SAMPLES.mental.slice(), 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-mental-note', false, true);
-    renderAdminExecHorizBars('admin-chart-disease', ADMIN_CHART_SAMPLES.diseaseWatch.slice(), 4, 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-disease-note', false, true);
-    renderAdminColumnBars('admin-chart-emergency', ADMIN_CHART_SAMPLES.emergencyMonthly.slice(), 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-emergency-note', false, true);
-    var gradeItems = getGradeRegistryChartItems();
-    var useGradeSample = !gradeItems;
-    if (useGradeSample) gradeItems = ADMIN_CHART_SAMPLES.gradeVisits.slice();
+  function renderAdminModuleCharts(live) {
+    if (!live) {
+      invalidateAdminLiveCache();
+      live = computeAdminLiveData();
+    }
+    var c = live.charts;
+    renderAdminColumnBars('admin-chart-screening', c.screening.items.slice(), 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-screening-note', c.screening.isDemo, false);
+    renderAdminDonut('admin-chart-nutrition', c.nutrition.items.slice(), 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-nutrition-note', c.nutrition.isDemo, false);
+    renderAdminExecHorizBars('admin-chart-chronic', c.chronic.items.slice(), 5, 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-chronic-note', c.chronic.isDemo, false);
+    renderAdminReferralGrid('admin-chart-appointment', c.appointmentGrid.items.slice(), 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-appointment-note', c.appointmentGrid.isDemo, false);
+    renderAdminDonut('admin-chart-mental', c.mental.items.slice(), 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-mental-note', c.mental.isDemo, false);
+    renderAdminExecHorizBars('admin-chart-disease', c.diseaseWatch.items.slice(), 4, 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-disease-note', c.diseaseWatch.isDemo, false);
+    renderAdminColumnBars('admin-chart-emergency', c.emergencyMonthly.items.slice(), 'ยังไม่มีข้อมูล');
+    setAdminChartDemoNote('admin-chart-emergency-note', c.emergencyMonthly.isDemo, false);
+    var gradeItems = c.gradeVisits.isDemo ? getGradeRegistryChartItems() : c.gradeVisits.items;
+    var useGradeFallback = !gradeItems || !gradeItems.length;
+    if (useGradeFallback) gradeItems = c.gradeVisits.items;
     renderAdminColumnBars('admin-chart-student', gradeItems, 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-student-note', false, useGradeSample);
-    renderAdminExecHorizBars('admin-chart-medicine', ADMIN_CHART_SAMPLES.medicineStock.map(function(it) {
-      return { label: it.label, count: it.count, color: it.color, unit: '%' };
+    setAdminChartDemoNote('admin-chart-student-note', c.gradeVisits.isDemo, false);
+    renderAdminExecHorizBars('admin-chart-medicine', c.medicineStock.items.map(function(it) {
+      return { label: it.label, count: it.count, color: it.color, unit: it.unit || '%' };
     }), 5, 'ยังไม่มีข้อมูล');
-    setAdminChartDemoNote('admin-chart-medicine-note', false, true);
+    setAdminChartDemoNote('admin-chart-medicine-note', c.medicineStock.isDemo, false);
   }
   function loadNutritionRecords() {
     try { return JSON.parse(localStorage.getItem('sh-nutrition') || '[]'); } catch (e) { return []; }
@@ -12997,7 +14069,7 @@
   var REPORT_SCHOOL_NAME = 'โรงเรียนบ้านไผ่';
   var REPORT_SCHOOL_CODE = '40022001';
   var REPORT_COMMUNICABLE_KEYWORDS = ['ไข้หวัด', 'หวัด', 'ไข้', 'ไอ', 'เจ็บคอ', 'ท้องเสีย', 'อาเจียน', 'มือเท้าปาก',
-    'HFMD', 'เหา', 'ขี้เรือ', 'คอนแทคิวส', 'หัด', 'ตับอักเสบ', 'ไข้เลือดออก', 'วัณ', 'ผื่น', 'โรคติดต่อ', 'RSV', 'ไข้เลือด'];
+    'HFMD', 'เหา', 'ขี้เรือ', 'ตาแดง', 'หัด', 'ตับอักเสบ', 'ไข้เลือดออก', 'วัณ', 'ผื่น', 'โรคติดต่อ', 'RSV', 'ไข้เลือด'];
 
   function getCurrentAcademicYearBE() {
     var now = new Date();
@@ -13528,27 +14600,30 @@
     }
   }
   function notifyReportDataChanged() {
+    invalidateAdminLiveCache();
+    invalidateVisitRecordsCache();
     refreshAllLiveCharts();
+    var diseasePanel = document.getElementById('section-disease');
+    if (diseasePanel && diseasePanel.classList.contains('active')) {
+      if (typeof renderDiseaseSituation === 'function') renderDiseaseSituation();
+      if (typeof renderDiseaseReports === 'function') renderDiseaseReports();
+    }
   }
   function refreshAdminDashboard() {
-    if (getCurrentRole() !== 'admin') return;
-    if (typeof renderAdminDashboardCharts === 'function') renderAdminDashboardCharts();
-    if (typeof renderAdminDashboardExtras === 'function') renderAdminDashboardExtras();
+    if (!isExecDashboardRole()) return;
+    renderDashboardNow();
   }
   function refreshAllLiveCharts() {
     renderMonthlyReportSummary();
     var dashPanel = document.getElementById('section-dashboard');
     var dashActive = dashPanel && dashPanel.classList.contains('active');
-    if (getCurrentRole() === 'admin' && dashActive) {
-      refreshAdminDashboard();
+    if (dashActive && typeof renderDashboardNow === 'function') {
+      renderDashboardNow();
+    } else if (isExecDashboardRole()) {
+      updateDashboardLayoutForRole();
     }
     if (typeof renderVaccineHpvCoverageChart === 'function') renderVaccineHpvCoverageChart();
     if (typeof renderGradeChart === 'function') renderGradeChart();
-    if (dashActive && typeof renderDashboard === 'function') {
-      renderDashboard();
-    } else if (getCurrentRole() === 'admin') {
-      updateDashboardLayoutForRole();
-    }
     var infoPanel = document.getElementById('section-gshps');
     if (infoPanel && infoPanel.classList.contains('active') && typeof renderInfoHub === 'function') {
       renderInfoHub();
@@ -13596,17 +14671,29 @@
     var reportKeys = ['sh-visit', 'sh-emergency', 'sh-nutrition', 'sh-vaccine', 'sh-chronic', 'sh-disease-reports', 'sh-screening', 'sh-mental', 'sh-dashboard', 'sh-referral', 'sh-nurse-alerts'];
     if (reportKeys.indexOf(e.key) !== -1) refreshAllLiveCharts();
     if (e.key === 'sh-nurse-alerts' && typeof renderNurseAlerts === 'function') renderNurseAlerts();
+    if (e.key === 'sh-dashboard' && typeof syncAllSchoolCalendarViews === 'function') {
+      syncAllSchoolCalendarViews(loadDashboard());
+    }
   });
 
   document.addEventListener('visibilitychange', function() {
     if (!document.hidden) {
       refreshAllLiveCharts();
+      if (typeof isFullStaffRole === 'function' && isFullStaffRole()) {
+        refreshAssessmentDataFromSheetForStaff();
+      }
       if (getCurrentRole() === 'student' && loggedInStudentId) {
         refreshStudentAppointmentFromSheet(loggedInStudentId);
         var visitRecPanel = document.getElementById('section-visit-record');
         if (visitRecPanel && visitRecPanel.classList.contains('active')) {
           refreshVisitRecordsFromSheet(loggedInStudentId, renderVisitRecordViews);
         }
+      }
+      var calPanel = document.getElementById('section-school-calendar');
+      if (calPanel && calPanel.classList.contains('active') &&
+          (getCurrentRole() === 'teacher' || getCurrentRole() === 'admin') &&
+          typeof refreshTeacherSchoolCalendar === 'function') {
+        refreshTeacherSchoolCalendar();
       }
     }
   });
@@ -13647,7 +14734,10 @@
   var _liveChartTimer = null;
   function startLiveChartPolling() {
     if (_liveChartTimer) return;
-    _liveChartTimer = setInterval(refreshAllLiveCharts, 8000);
+    _liveChartTimer = setInterval(function() {
+      if (document.hidden) return;
+      refreshAllLiveCharts();
+    }, 30000);
   }
   startLiveChartPolling();
 
@@ -14031,7 +15121,7 @@
     var adviceEl = document.getElementById('pub-nut-advice');
     if (resultEl) {
       resultEl.className = 'alert alert-info';
-      resultEl.textContent = 'กรอกน้ำหนักและส่วนสูง แล้วกด「ดูผลประเมิน」';
+      resultEl.textContent = 'กรอกน้ำหนักและส่วนสูง แล้วกดปุ่ม "ดูผลประเมิน"';
     }
     if (adviceEl) adviceEl.innerHTML = '';
   }
@@ -14056,7 +15146,7 @@
     var text = document.getElementById('pub-nineq-result-text');
     if (box && text) {
       box.className = 'alert alert-info';
-      text.textContent = 'กรุณาตอบคำถามให้ครบทุกข้อ แล้วกด「ดูผลประเมิน」';
+      text.textContent = 'กรุณาตอบคำถามให้ครบทุกข้อ แล้วกดปุ่ม "ดูผลประเมิน"';
     }
   }
   window.switchPubScreeningTab = switchPubScreeningTab;
@@ -14108,7 +15198,7 @@
       delete record.timeRepaired;
     }
     if (!ts && record.timeRepaired && record.savedAt) ts = record.savedAt;
-    if (!ts && (record.id || record.name) && !record.timeRepaired) {
+    if (!ts && (record.id || record.name) && !record.timeRepaired && !record.fromSheet) {
       var base = new Date();
       base.setHours(8, 0, 0, 0);
       ts = base.getTime() + (orphanIndex || 0) * 180000;
@@ -14194,6 +15284,7 @@
     return records.length !== before;
   }
   function loadVisitRecords() {
+    if (_visitRecordsMemCache) return _visitRecordsMemCache;
     let records = [];
     try { records = JSON.parse(localStorage.getItem('sh-visit') || '[]'); } catch (e) {}
     if (!records.length) {
@@ -14209,8 +15300,19 @@
       var beforeRecorded = r.recordedAt;
       var beforeId = r.recordId;
       var isSheet = r.fromSheet || (r.recordId && String(r.recordId).indexOf('v-sheet-') === 0);
-      if (isSheet && !isVisitToday(r) && typeof assignSheetVisitTodayTime_ === 'function') {
-        assignSheetVisitTodayTime_(r, r.sheetRow ? r.sheetRow - 2 : orphanIdx++);
+      if (isSheet && r.recordedAt && typeof parseVisitRecordedAt === 'function') {
+        var fromRec = parseVisitRecordedAt(r.recordedAt);
+        if (fromRec && typeof isValidVisitSavedAt === 'function' && isValidVisitSavedAt(fromRec)) {
+          var curTs = getVisitRecordTime(r);
+          if (!curTs || Math.abs(curTs - fromRec) > VISIT_DAY_MS) {
+            r.savedAt = fromRec;
+            delete r.timeRepaired;
+            repaired = true;
+          }
+        }
+      }
+      if (isSheet && !getVisitRecordTime(r) && typeof applySheetVisitTimestamp_ === 'function') {
+        applySheetVisitTimestamp_(r, r.sheetRow ? r.sheetRow - 2 : orphanIdx++);
         repaired = true;
       } else if (!getVisitRecordTime(r)) {
         repairVisitRecordTimestamp(r, orphanIdx++);
@@ -14223,15 +15325,18 @@
     if (pruneEmptyVisitTodayRecords(records)) repaired = true;
     if (dedupeVisitRecordsByStudentDay(records)) repaired = true;
     if (repaired) saveVisitRecords(records);
+    _visitRecordsMemCache = records;
     return records;
   }
   function saveVisitRecords(records) {
+    _visitRecordsMemCache = null;
+    if (typeof invalidateAdminLiveCache === 'function') invalidateAdminLiveCache();
     try {
       localStorage.setItem('sh-visit', JSON.stringify(records));
       localStorage.setItem('sh-visit-backup', JSON.stringify(records));
     } catch (e) {
       console.error('[sh-visit] save failed', e);
-      try { alert('✅ บันทึกรายการรักษาไม่สำเร็จ — ที่เก็บเต็มหรือถูกปิดกั้น กรุณาลองอีกครั้ง'); } catch (e2) {}
+      try { alert('⚠️ บันทึกรายการรักษาไม่สำเร็จ — ที่เก็บเต็มหรือถูกปิดกั้น กรุณาลองอีกครั้ง'); } catch (e2) {}
     }
   }
   function escVisitHtml(s) {
@@ -14352,8 +15457,8 @@
     return formatVisitDateTime(record);
   }
   var VISIT_DAY_MS = 24 * 60 * 60 * 1000;
-  var VISIT_WEEK_TIER_MS = 28 * 24 * 60 * 60 * 1000;
-  var VISIT_YEAR_TIER_MS = 365 * 24 * 60 * 60 * 1000;
+  var VISIT_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+  var VISIT_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
   function resolveVisitRecordTimestamp(record) {
     if (!record) return 0;
     var ts = getVisitRecordTime(record);
@@ -14367,19 +15472,30 @@
     if (!ts) return Infinity;
     return Date.now() - ts;
   }
+  function isVisitToday(record) {
+    var ts = resolveVisitRecordTimestamp(record);
+    if (!ts) return false;
+    var d = new Date(ts);
+    var now = new Date();
+    return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }
   function isVisitPeriodToday(record) {
     return getVisitAgeMs(record) < VISIT_DAY_MS;
   }
   function isVisitPeriodWeek(record) {
     var age = getVisitAgeMs(record);
-    return age >= VISIT_DAY_MS && age < VISIT_WEEK_TIER_MS;
+    return age >= VISIT_DAY_MS && age < VISIT_MONTH_MS;
   }
   function isVisitPeriodMonth(record) {
     var age = getVisitAgeMs(record);
-    return age >= VISIT_WEEK_TIER_MS && age < VISIT_YEAR_TIER_MS;
+    return age >= VISIT_MONTH_MS && age < VISIT_YEAR_MS;
   }
   function isVisitPeriodYear(record) {
-    return getVisitAgeMs(record) >= VISIT_YEAR_TIER_MS;
+    var age = getVisitAgeMs(record);
+    return age >= VISIT_YEAR_MS && age < VISIT_YEAR_MS * 2;
+  }
+  function isVisitPeriodHistory(record) {
+    return getVisitAgeMs(record) >= VISIT_YEAR_MS;
   }
   function getVisitRecordPeriod(record) {
     if (isVisitPeriodToday(record)) return 'today';
@@ -14388,10 +15504,10 @@
     return 'year';
   }
   var VISIT_PERIOD_HINTS = {
-    today: 'แสดงรายการภายใน 1 วันล่าสุด — หลังครบ 1 วันจะย้ายไปรายการสัปดาห์นี้',
-    week: 'แสดงรายการที่ผ่านมา 1–28 วัน — หลังครบ 4 สัปดาห์จะย้ายไปรายการเดือนนี้',
-    month: 'แสดงรายการที่ผ่านมา 4 สัปดาห์–12 เดือน — หลังครบ 12 เดือนจะย้ายไปรายการปีนี้',
-    year: 'แสดงรายการที่เก่ากว่า 12 เดือน'
+    today: 'แสดงรายการภายใน 1 วันนับจากเวลาที่บันทึก — ครบ 1 วันจะย้ายไปรายการสัปดาห์นี้',
+    week: 'แสดงรายการที่บันทึกมาแล้ว 1–30 วัน — ครบ 1 เดือนจะย้ายไปรายการเดือนนี้',
+    month: 'แสดงรายการที่บันทึกมาแล้ว 1–12 เดือน — ครบ 1 ปีจะย้ายไปรายการปีนี้',
+    year: 'แสดงรายการที่บันทึกมาแล้ว 1–2 ปี — เกิน 1 ปีจะแสดงในประวัติด้านล่าง'
   };
   function isVisitWithin24Hours(record) {
     return isVisitPeriodToday(record);
@@ -14440,11 +15556,12 @@
     if (!tbody) return;
     var note = document.getElementById('visit-history-note');
     var all = loadVisitRecords().slice()
+      .filter(function(r) { return isVisitPeriodHistory(r); })
       .sort(function(a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
     var limit = 100;
     var records = all.length > limit ? all.slice(0, limit) : all;
     if (!records.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-mid);padding:18px;">ยังไม่มีประวัติการรับบริการ</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-mid);padding:18px;">ยังไม่มีประวัติการรับบริการ (แสดงรายการที่บันทึกมาแล้วเกิน 1 ปี)</td></tr>';
       if (note) note.textContent = '';
       return;
     }
@@ -14593,7 +15710,9 @@
     var keys = {};
     var merged = [];
     sheetVisits.forEach(function(r) {
-      if (typeof assignSheetVisitTodayTime_ === 'function') {
+      if (typeof applySheetVisitTimestamp_ === 'function') {
+        applySheetVisitTimestamp_(r, r.sheetRow ? r.sheetRow - 2 : merged.length);
+      } else if (typeof assignSheetVisitTodayTime_ === 'function') {
         assignSheetVisitTodayTime_(r, r.sheetRow ? r.sheetRow - 2 : merged.length);
       }
       enrichVisitFromStudentRegistry(r);
@@ -14611,6 +15730,99 @@
     });
     merged.sort(function(a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
     saveVisitRecords(merged);
+  }
+  function mergeRecordsIntoLocalStorage_(storageKey, incoming, getMergeKey) {
+    if (!incoming || !incoming.length) return null;
+    var local = [];
+    try { local = JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch (e) {}
+    var index = {};
+    local.forEach(function(r, i) {
+      var k = getMergeKey(r);
+      if (k) index[k] = i;
+    });
+    incoming.forEach(function(r) {
+      var k = getMergeKey(r);
+      if (!k) return;
+      if (index[k] !== undefined) {
+        var existing = local[index[k]];
+        if ((r.savedAt || 0) >= (existing.savedAt || 0) || r.fromSheet) {
+          local[index[k]] = Object.assign({}, existing, r);
+        }
+      } else {
+        index[k] = local.length;
+        local.push(r);
+      }
+    });
+    local.sort(function(a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
+    try { localStorage.setItem(storageKey, JSON.stringify(local)); } catch (e) {}
+    return local;
+  }
+  function applyAssessmentDataFromSheet(data) {
+    if (!data) return;
+    if (data.nutrition && data.nutrition.length) {
+      var nut = mergeRecordsIntoLocalStorage_('sh-nutrition', data.nutrition, function(r) {
+        return 'nut-' + String(r.id || '').trim();
+      });
+      if (nut && typeof renderNutritionFollowup === 'function') renderNutritionFollowup(nut);
+    }
+    if (data.screening && data.screening.length) {
+      mergeRecordsIntoLocalStorage_('sh-screening', data.screening, function(r) {
+        return String(r.recordId || ('scr-' + String(r.id || '').trim() + '-' + String(r.type || '') + '-' + String(r.savedAt || 0)));
+      });
+      if (typeof renderScreeningRecords === 'function') renderScreeningRecords();
+    }
+    if (data.chronic && data.chronic.length) {
+      chronicRecordsCache = mergeRecordsIntoLocalStorage_('sh-chronic', data.chronic, function(r) {
+        return 'chr-' + String(r.id || '').trim();
+      }) || chronicRecordsCache;
+      if (typeof filterChronicRecords === 'function') filterChronicRecords();
+      else if (typeof renderChronicRecords === 'function') renderChronicRecords(chronicRecordsCache);
+    }
+    if (data.diseaseStudent && data.diseaseStudent.length) {
+      mergeRecordsIntoLocalStorage_('sh-disease-reports', data.diseaseStudent, function(r) {
+        return 'dis-' + String(r.id || '').trim() + '-' + String(r.savedAt || 0) + '-' + String(r.disease || '');
+      });
+      if (typeof renderDiseaseReports === 'function') renderDiseaseReports();
+    }
+    if (data.diseaseStaff && data.diseaseStaff.length) {
+      mergeRecordsIntoLocalStorage_('sh-disease-reports', data.diseaseStaff, function(r) {
+        return 'dis-staff-' + String(r.savedAt || 0) + '-' + String(r.disease || '') + '-' + String(r.room || '');
+      });
+      if (typeof syncDiseaseSituationFromStaffReports === 'function') syncDiseaseSituationFromStaffReports();
+    }
+    if (typeof renderDiseaseSituation === 'function') renderDiseaseSituation();
+    if (data.mental && data.mental.length) {
+      mergeRecordsIntoLocalStorage_('sh-mental', data.mental, function(r) {
+        return String(r.recordId || ('mh-' + String(r.id || '').trim() + '-' + String(r.type || '') + '-' + String(r.savedAt || 0)));
+      });
+      if (typeof renderMentalRecords === 'function') renderMentalRecords();
+    }
+  }
+  var assessmentSheetRefreshPending = false;
+  function refreshAssessmentDataFromSheetForStaff(callback) {
+    if (typeof isFullStaffRole === 'function' && !isFullStaffRole()) {
+      if (callback) callback();
+      return;
+    }
+    if (typeof fetchAllAssessmentDataFromSheet !== 'function') {
+      if (callback) callback();
+      return;
+    }
+    if (assessmentSheetRefreshPending) {
+      if (callback) callback();
+      return;
+    }
+    assessmentSheetRefreshPending = true;
+    fetchAllAssessmentDataFromSheet().then(function(data) {
+      assessmentSheetRefreshPending = false;
+      applyAssessmentDataFromSheet(data);
+      if (typeof syncDashboardStatsFromRecords === 'function') syncDashboardStatsFromRecords();
+      if (typeof refreshAllLiveCharts === 'function') refreshAllLiveCharts();
+      if (callback) callback();
+    }).catch(function() {
+      assessmentSheetRefreshPending = false;
+      if (callback) callback();
+    });
   }
   var visitSheetRefreshPending = false;
   function refreshAllVisitRecordsFromSheetForStaff(callback) {
@@ -14632,8 +15844,11 @@
       if (sheetVisits && sheetVisits.length) {
         replaceVisitRecordsFromSheetAll(sheetVisits);
       }
+      if (typeof syncDashboardStatsFromRecords === 'function') syncDashboardStatsFromRecords();
       if (typeof renderVisitToday === 'function') renderVisitToday();
       if (typeof renderVisitHistory === 'function') renderVisitHistory();
+      if (typeof renderDashboard === 'function') renderDashboard();
+      if (typeof refreshAllLiveCharts === 'function') refreshAllLiveCharts();
       if (callback) callback();
     }).catch(function() {
       visitSheetRefreshPending = false;
@@ -14959,7 +16174,7 @@
       return '<tr><td>' + escVisitHtml(r.recordedAt || '—') + '</td><td>' + escVisitHtml(r.score != null ? r.score : '—') +
         '</td><td>' + escVisitHtml(r.risk || '—') + '</td></tr>';
     });
-    renderStudentRecordTable(tablePrefix + '-chronic', scopeId, 5, 'ยังไม่มีข้อมูลโroคประจำตัว/การแพ้อาหาร/การแพ้ยา', loadChronicFromStorage, function(r) {
+    renderStudentRecordTable(tablePrefix + '-chronic', scopeId, 5, 'ยังไม่มีข้อมูลโรคประจำตัว/การแพ้อาหาร/การแพ้ยา', loadChronicFromStorage, function(r) {
       return '<tr><td><span class="badge ' + getChronicBadgeClass(r.disease) + '">' + escVisitHtml(r.disease || '—') +
         '</span></td><td>' + escVisitHtml(r.medicine || '—') + '</td><td>' + escVisitHtml(r.phone || '—') +
         '</td><td>' + escVisitHtml(r.note || '—') + '</td><td>' + escVisitHtml(r.recordedAt || '—') + '</td></tr>';
@@ -15383,6 +16598,10 @@
     if (shouldSync && typeof syncStudentHealthToSheetQuiet === 'function') {
       syncStudentHealthToSheetQuiet(id);
     }
+    if (shouldSync && typeof syncStudentRegistryEntryQuiet === 'function' && typeof collectStudentRegistryEntry === 'function') {
+      var regEntry = collectStudentRegistryEntry(id);
+      if (regEntry) syncStudentRegistryEntryQuiet(regEntry);
+    }
   }
   function getStudentChronicLabel(id) {
     var records = [];
@@ -15734,6 +16953,147 @@
     renderAppointmentList();
     closeStudentAppointmentModal();
   }
+  function getStudentRegistryClassMap() {
+    var map = {};
+    try { Object.assign(map, JSON.parse(localStorage.getItem('sh-student-registry-class') || '{}')); } catch (e) {}
+    document.querySelectorAll('#section-student tbody tr').forEach(function(tr) {
+      if (!tr.cells || !tr.cells[0]) return;
+      var sid = tr.cells[0].textContent.trim();
+      var cls = tr.cells[2] ? tr.cells[2].textContent.trim() : '';
+      if (sid && cls && cls !== '—') map[sid] = cls;
+    });
+    return map;
+  }
+  function saveStudentRegistryClassMap(map) {
+    try { localStorage.setItem('sh-student-registry-class', JSON.stringify(map || {})); } catch (e) {}
+  }
+  function collectStudentRegistryEntry(id) {
+    id = String(id || '').trim();
+    if (!id || typeof STUDENT_BASIC === 'undefined' || !lookupStudent(id)) return null;
+    var student = lookupStudent(id);
+    var k = canonicalStudentIdKey(id);
+    var classMap = getStudentRegistryClassMap();
+    var cls = classMap[k] || classMap[id] || '';
+    var health = getStudentRegistryHealth(id);
+    var extra = getStudentHealthExtra(id);
+    function plain(v) {
+      return (v && v !== '—' && v !== '-') ? v : '';
+    }
+    return {
+      id: k,
+      name: student.fullName || '',
+      class: cls,
+      age: student.age != null ? student.age : '',
+      gender: student.gender || '',
+      genderLabel: formatStudentGender(student.gender),
+      chronic: plain(health.chronic),
+      drug: plain(health.drug),
+      food: plain(health.food),
+      precautions: plain(health.precautions),
+      guardianPhone: student.guardianPhone || student.guardianTel || student.phone || extra.guardianPhone || '',
+      updatedAt: new Date().toLocaleString('th-TH')
+    };
+  }
+  function collectStudentRegistryEntries() {
+    if (typeof STUDENT_BASIC === 'undefined') return [];
+    return Object.keys(STUDENT_BASIC).map(function(id) {
+      return collectStudentRegistryEntry(id);
+    }).filter(Boolean);
+  }
+  function applyStudentRegistryFromSheet(items) {
+    if (!items || !items.length) return;
+    var classMap = getStudentRegistryClassMap();
+    items.forEach(function(it) {
+      if (!it || !it.id) return;
+      var k = canonicalStudentIdKey(it.id);
+      if (it.class && it.class !== '—') classMap[k] = it.class;
+    });
+    saveStudentRegistryClassMap(classMap);
+    var tbody = document.querySelector('#section-student tbody');
+    if (!tbody) return;
+    items.forEach(function(it) {
+      if (!it || !it.id || !it.class) return;
+      var tr = Array.from(tbody.rows).find(function(r) {
+        return r.cells[0] && visitIdMatch(r.cells[0].textContent.trim(), it.id);
+      });
+      if (tr && tr.cells[2]) tr.cells[2].textContent = it.class;
+    });
+  }
+  var studentRegistrySheetRefreshPending = false;
+  function refreshStudentRegistryFromSheetForStaff(callback) {
+    if (typeof isFullStaffRole === 'function' && !isFullStaffRole()) {
+      if (callback) callback();
+      return;
+    }
+    if (typeof fetchStudentRegistryFromSheet !== 'function') {
+      if (callback) callback();
+      return;
+    }
+    if (studentRegistrySheetRefreshPending) {
+      if (callback) callback();
+      return;
+    }
+    studentRegistrySheetRefreshPending = true;
+    fetchStudentRegistryFromSheet().then(function(items) {
+      studentRegistrySheetRefreshPending = false;
+      if (items && items.length) applyStudentRegistryFromSheet(items);
+      if (callback) callback();
+    }).catch(function() {
+      studentRegistrySheetRefreshPending = false;
+      if (callback) callback();
+    });
+  }
+  var _studentRegistrySyncRunning = false;
+  function syncAllStudentRegistryToSheet(options) {
+    options = options || {};
+    if (_studentRegistrySyncRunning) return Promise.resolve(0);
+    if (typeof syncStudentRegistryBatchQuiet !== 'function' || typeof buildStudentRegistrySheetRow !== 'function') {
+      return Promise.resolve(0);
+    }
+    var entries = collectStudentRegistryEntries();
+    if (!entries.length) return Promise.resolve(0);
+    _studentRegistrySyncRunning = true;
+    var chunkSize = 60;
+    var i = 0;
+    var total = entries.length;
+    return new Promise(function(resolve) {
+      function next() {
+        if (i >= total) {
+          _studentRegistrySyncRunning = false;
+          try { localStorage.setItem('sh-student-registry-last-sync', String(Date.now())); } catch (e) {}
+          if (options.onDone) options.onDone(total);
+          if (typeof showSheetToast_ === 'function') {
+            showSheetToast_('ซิงค์ทะเบียนนักเรียน ' + total.toLocaleString('th-TH') + ' คนเสร็จแล้ว');
+          }
+          resolve(total);
+          return;
+        }
+        var chunk = entries.slice(i, i + chunkSize);
+        i += chunkSize;
+        var rows = chunk.map(function(e) { return buildStudentRegistrySheetRow(e); });
+        syncStudentRegistryBatchQuiet(rows).then(function() {
+          setTimeout(next, 250);
+        }).catch(function() {
+          setTimeout(next, 500);
+        });
+      }
+      if (typeof showSheetToast_ === 'function') {
+        showSheetToast_('กำลังซิงค์ทะเบียนนักเรียน ' + total.toLocaleString('th-TH') + ' คน...');
+      }
+      next();
+    });
+  }
+  function maybeAutoSyncStudentRegistry() {
+    if (typeof isFullStaffRole !== 'function' || !isFullStaffRole()) return;
+    var last = parseInt(localStorage.getItem('sh-student-registry-last-sync') || '0', 10);
+    if (Date.now() - last < 86400000) return;
+    syncAllStudentRegistryToSheet();
+  }
+  function syncStudentRegistryNow() {
+    if (typeof isFullStaffRole === 'function' && !isFullStaffRole()) return;
+    syncAllStudentRegistryToSheet();
+  }
+  window.syncStudentRegistryNow = syncStudentRegistryNow;
   function buildStudentRegistryRow(id, name, cls, age, health, genderText) {
     var sid = String(id).replace(/'/g, "\\'");
     var appt = getStudentAppointment(id);
@@ -15773,6 +17133,10 @@
     var age = (student && student.age) ? student.age : (tr.cells[3] ? tr.cells[3].textContent.trim() : '—');
     var health = getStudentRegistryHealth(id);
     tr.innerHTML = buildStudentRegistryRow(id, name, cls, age, health, formatStudentGender(student && student.gender));
+    if (typeof syncStudentRegistryEntryQuiet === 'function' && typeof collectStudentRegistryEntry === 'function') {
+      var regEntry = collectStudentRegistryEntry(id);
+      if (regEntry) syncStudentRegistryEntryQuiet(regEntry);
+    }
   }
   function initStudentRegistryTable() {
     var tbody = document.querySelector('#section-student tbody');
@@ -15790,6 +17154,7 @@
       var health = getStudentRegistryHealth(id, oldChronic, oldDrug);
       tr.innerHTML = buildStudentRegistryRow(id, name, cls, age, health, formatStudentGender(student && student.gender));
     }
+    saveStudentRegistryClassMap(getStudentRegistryClassMap());
   }
   function saveStudentHealthFromBasicModal() {
     if (!basicInfoStudentId) return;
@@ -15799,6 +17164,10 @@
       precautions: (document.getElementById('biEditPrecaution').value || '').trim()
     });
     refreshStudentRegistryRow(basicInfoStudentId);
+    if (typeof syncStudentRegistryEntryQuiet === 'function' && typeof collectStudentRegistryEntry === 'function') {
+      var regEntry = collectStudentRegistryEntry(basicInfoStudentId);
+      if (regEntry) syncStudentRegistryEntryQuiet(regEntry);
+    }
     showStudentBasic(basicInfoStudentId);
     alert('✅ บันทึกข้อมูลสุขภาพเรียบร้อย');
   }
@@ -15924,18 +17293,20 @@
     applyRolePermissions('student');
   }
   function safeBootData() {
+    var skipDashRefresh = !!getCurrentRole();
     var bootFns = [
       updateStudentCounts,
       initReferralRecords,
       renderVaccineSchedule,
-      renderDashboard,
       renderEmergencyRecords,
       renderDiseaseSituation,
       renderEnvironmentResults,
       renderVisitToday,
-      refreshAllLiveCharts,
       renderGradeChart
     ];
+    if (!skipDashRefresh) {
+      bootFns.push(renderDashboard, refreshAllLiveCharts);
+    }
     bootFns.forEach(function(fn) {
       try {
         if (typeof fn === 'function') fn();
@@ -15971,7 +17342,11 @@
     if (typeof initStudentRegistryTable === 'function') initStudentRegistryTable();
     updateStudentCounts();
     if (loggedInStudentId) updateRoleBadge();
-    if (getCurrentRole() === 'admin' && typeof refreshAdminDashboard === 'function') refreshAdminDashboard();
+    if (isExecDashboardRole() && typeof refreshAdminDashboard === 'function') refreshAdminDashboard();
+    if (typeof isFullStaffRole === 'function' && isFullStaffRole()) {
+      var syncBtn = document.getElementById('btn-sync-student-registry');
+      if (syncBtn) syncBtn.style.display = '';
+    }
   }
   function openStudentLogin() {
     const modal = document.getElementById('studentLoginModal');
@@ -15988,9 +17363,34 @@
     const modal = document.getElementById('studentLoginModal');
     if (modal) modal.classList.remove('open');
   }
+  function resolvePendingStaffRole() {
+    if (pendingStaffRole && ROLES[pendingStaffRole]) return pendingStaffRole;
+    if (window.__pendingStaffRoleEarly && ROLES[window.__pendingStaffRoleEarly]) {
+      pendingStaffRole = window.__pendingStaffRoleEarly;
+      window.__pendingStaffRoleEarly = '';
+      return pendingStaffRole;
+    }
+    return pendingStaffRole || '';
+  }
+  function showStaffLoginError(msg) {
+    var errEl = document.getElementById('staffLoginError');
+    if (!errEl) {
+      alert(msg);
+      return;
+    }
+    errEl.style.display = '';
+    errEl.textContent = msg;
+  }
+  function clearStaffLoginError() {
+    var errEl = document.getElementById('staffLoginError');
+    if (!errEl) return;
+    errEl.style.display = 'none';
+    errEl.textContent = '';
+  }
   function openStaffLogin(roleKey) {
     if (!ROLES[roleKey] || roleKey === 'student') return;
     pendingStaffRole = roleKey;
+    window.__pendingStaffRoleEarly = roleKey;
     const modal = document.getElementById('staffLoginModal');
     const errEl = document.getElementById('staffLoginError');
     const userEl = document.getElementById('staffLoginUser');
@@ -16007,28 +17407,41 @@
     const modal = document.getElementById('staffLoginModal');
     if (modal) modal.classList.remove('open');
     pendingStaffRole = '';
+    window.__pendingStaffRoleEarly = '';
+    var btn = document.querySelector('#staffLoginModal .student-login-submit');
+    if (btn) { btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ'; }
+  }
+  function dismissBlockingOverlays() {
+    closeStaffLogin();
+    closeStudentLogin();
+    closeMobileNav();
+    var staffBtn = document.querySelector('#staffLoginModal .student-login-submit');
+    if (staffBtn) { staffBtn.disabled = false; staffBtn.textContent = 'เข้าสู่ระบบ'; }
+    var studentBtn = document.querySelector('#studentLoginModal .student-login-submit');
+    if (studentBtn) { studentBtn.disabled = false; studentBtn.textContent = 'เข้าสู่ระบบ'; }
+    var screen = document.getElementById('role-screen');
+    if (screen) screen.classList.add('role-screen-hidden');
   }
   function submitStaffLogin() {
-    const user = (document.getElementById('staffLoginUser').value || '').trim();
-    const pass = (document.getElementById('staffLoginPass').value || '').trim();
-    const errEl = document.getElementById('staffLoginError');
+    var userEl = document.getElementById('staffLoginUser');
+    var passEl = document.getElementById('staffLoginPass');
+    const user = ((userEl && userEl.value) || '').trim();
+    const pass = ((passEl && passEl.value) || '').trim();
     if (!user || !pass) {
-      errEl.style.display = '';
-      errEl.textContent = 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน';
+      showStaffLoginError('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
       return;
     }
     if (user !== STAFF_LOGIN.username || pass !== STAFF_LOGIN.password) {
-      errEl.style.display = '';
-      errEl.textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+      showStaffLoginError('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
       return;
     }
-    const roleKey = pendingStaffRole;
+    const roleKey = resolvePendingStaffRole();
     if (!roleKey || !ROLES[roleKey]) {
-      errEl.style.display = '';
-      errEl.textContent = 'ไม่พบบทบาทที่เลือก กรุณาลองใหม่';
+      showStaffLoginError('ไม่พบบทบาทที่เลือก กรุณาปิดหน้าต่างแล้วเลือกบทบาทอีกครั้ง');
       return;
     }
-    closeStaffLogin();
+    clearStaffLoginError();
+    dismissBlockingOverlays();
     enterApp(roleKey);
   }
   function submitStudentLogin() {
@@ -16067,6 +17480,11 @@
     return currentRole;
   }
   var LIMITED_USER_HOME_SECTION = 'vaccine';
+  function getLimitedUserHomeSection(role) {
+    role = role || (typeof getCurrentRole === 'function' ? getCurrentRole() : '');
+    if (role === 'teacher') return 'visit-record';
+    return LIMITED_USER_HOME_SECTION;
+  }
   function setLimitedUserFieldMode(readonly) {
     [['vac-stu-id', 'vac-stu-name'], ['chr-stu-id', 'chr-stu-name'], ['dis-stu-id', 'dis-stu-name'], ['vis-my-id', 'vis-my-name']].forEach(function(pair) {
       pair.forEach(function(fieldId) {
@@ -16104,7 +17522,10 @@
     if (window._limitedUserHandlersSetup) return;
     window._limitedUserHandlersSetup = true;
     [
-      ['vac-stu-id', 'vac-stu-name', renderStudentVaccineHistory],
+      ['vac-stu-id', 'vac-stu-name', function() {
+        renderStudentVaccineHistory();
+        renderVaccineSchedule();
+      }],
       ['chr-stu-id', 'chr-stu-name', renderStudentChronicHistory],
       ['dis-stu-id', 'dis-stu-name', renderStudentDiseaseHistory],
       ['vis-my-id', 'vis-my-name', fillVisitMyFromId],
@@ -16124,6 +17545,7 @@
           return;
         }
         fillLimitedUserFromId(bind[0], bind[1], bind[2]);
+        if (bind[0] === 'vac-stu-id' && typeof bind[2] === 'function') bind[2]();
       });
       if (nameEl && bind[0] === 'vis-rec-id') {
         nameEl.addEventListener('blur', function() {
@@ -16136,12 +17558,13 @@
   function showLimitedUserHome() {
     if (!isLimitedUser()) return;
     closeMobileNav();
+    var homeSection = getLimitedUserHomeSection();
     document.querySelectorAll('.section-panel').forEach(function(p) { p.classList.remove('active'); });
     document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
-    const panel = document.getElementById('section-' + LIMITED_USER_HOME_SECTION);
+    const panel = document.getElementById('section-' + homeSection);
     if (panel) panel.classList.add('active');
     document.querySelectorAll('.nav-item').forEach(function(n) {
-      if (n.getAttribute('onclick') && n.getAttribute('onclick').indexOf("'" + LIMITED_USER_HOME_SECTION + "'") !== -1) {
+      if (n.getAttribute('onclick') && n.getAttribute('onclick').indexOf("'" + homeSection + "'") !== -1) {
         n.classList.add('active');
       }
     });
@@ -16154,6 +17577,49 @@
     fillStudentNutritionForm();
     fillStudentMentalForm();
     renderVaccineSchedule();
+  }
+  function scheduleDeferredStaffSheetSync(role) {
+    if (typeof isFullStaffRole === 'function' && isFullStaffRole(role)) {
+      setTimeout(function() {
+        if (getCurrentRole() !== role) return;
+        if (role === 'nurse' || role === 'admin' || role === 'teacher') {
+          refreshCalendarFromSheet();
+        }
+        refreshAllVisitRecordsFromSheetForStaff(function() {
+          invalidateAdminLiveCache();
+          invalidateVisitRecordsCache();
+          if (isExecDashboardRole()) {
+            var dash = document.getElementById('section-dashboard');
+            if (dash && dash.classList.contains('active')) renderDashboardNow();
+          }
+        });
+        refreshAssessmentDataFromSheetForStaff(function() {
+          invalidateAdminLiveCache();
+          if (isExecDashboardRole()) {
+            var dash = document.getElementById('section-dashboard');
+            if (dash && dash.classList.contains('active')) renderDashboardNow();
+          }
+        });
+        refreshStudentRegistryFromSheetForStaff(function() {
+          maybeAutoSyncStudentRegistry();
+        });
+      }, isExecDashboardRole(role) ? 400 : 120);
+      return;
+    }
+    renderVisitToday();
+  }
+  function layoutVaccineSectionForRole(role) {
+    var section = document.getElementById('section-vaccine');
+    var scheduleCard = document.getElementById('vaccine-schedule-card');
+    var studentCard = document.getElementById('vaccine-student-card');
+    if (!section || !scheduleCard || !studentCard) return;
+    if (role === 'teacher') {
+      if (studentCard.compareDocumentPosition(scheduleCard) & Node.DOCUMENT_POSITION_FOLLOWING) {
+        section.insertBefore(studentCard, scheduleCard);
+      }
+    } else if (scheduleCard.compareDocumentPosition(studentCard) & Node.DOCUMENT_POSITION_FOLLOWING) {
+      section.insertBefore(scheduleCard, studentCard);
+    }
   }
   function applyRolePermissions(roleKey) {
     setupLimitedUserFormHandlers();
@@ -16190,6 +17656,8 @@
     document.querySelectorAll('[data-staff-only]').forEach(function(el) {
       el.style.display = isStaff ? '' : 'none';
     });
+    var syncRegBtn = document.getElementById('btn-sync-student-registry');
+    if (syncRegBtn) syncRegBtn.style.display = isStaff ? '' : 'none';
     document.querySelectorAll('.visit-col-staff').forEach(function(el) {
       el.style.display = isStaff ? '' : 'none';
     });
@@ -16210,6 +17678,9 @@
     document.querySelectorAll('[data-student-only]').forEach(function(el) {
       el.style.display = isLimited ? '' : 'none';
     });
+    document.querySelectorAll('[data-teacher-only]').forEach(function(el) {
+      el.style.display = role === 'teacher' ? '' : 'none';
+    });
     const isNurse = role === 'nurse';
     document.querySelectorAll('[data-nurse-only]').forEach(function(el) {
       el.style.display = isNurse ? '' : 'none';
@@ -16221,25 +17692,26 @@
       fillVisitMyForm();
       fillVisitRecordForm();
     }
+    layoutVaccineSectionForRole(role);
     fillStudentScreeningForms();
     fillStudentNutritionForm();
     fillStudentMentalForm();
     renderVaccineSchedule();
     renderVaccineHpvCoverageChart();
-    refreshAllLiveCharts();
-    renderDashboard();
+    if (isExecDashboardRole(role)) {
+      renderDashboardNow();
+    } else {
+      refreshAllLiveCharts();
+      renderDashboard();
+    }
     renderEmergencyRecords();
     renderDiseaseSituation();
     renderDiseaseReports();
     renderEnvironmentResults();
     var calNav = document.getElementById('nav-school-calendar');
     if (calNav) calNav.style.display = (role === 'teacher' || role === 'admin') ? '' : 'none';
-    if (role === 'teacher' || role === 'admin') renderSchoolCalendarPage();
-    if (typeof isFullStaffRole === 'function' && isFullStaffRole(role)) {
-      refreshAllVisitRecordsFromSheetForStaff();
-    } else {
-      renderVisitToday();
-    }
+    if (role === 'teacher' || role === 'admin') refreshTeacherSchoolCalendar();
+    scheduleDeferredStaffSheetSync(role);
     if (typeof renderNurseAlerts === 'function') renderNurseAlerts();
     const limitedUserBlockedActive = isLimited && (
       STAFF_ONLY_SECTIONS.some(function(sid) {
@@ -16256,12 +17728,6 @@
     if (limitedUserBlockedActive) {
       showLimitedUserHome();
     }
-    if (role === 'admin') {
-      const reportPanel = document.getElementById('section-report');
-      if (reportPanel && reportPanel.classList.contains('active')) {
-        showSection('dashboard');
-      }
-    }
   }
   function enterGuestAccess(mode) {
     if (mode === 'public') guestMode = 'public';
@@ -16269,7 +17735,7 @@
     else guestMode = 'knowledge';
     currentRole = 'public';
     loggedInStudentId = '';
-    closeMobileNav();
+    dismissBlockingOverlays();
     updateRoleBadge();
     const screen = document.getElementById('role-screen');
     if (screen) screen.classList.add('role-screen-hidden');
@@ -16286,17 +17752,24 @@
     const r = ROLES[roleKey];
     if (!r) return;
     currentRole = roleKey;
+    dismissBlockingOverlays();
     closeMobileNav();
     updateRoleBadge();
     const screen = document.getElementById('role-screen');
     if (screen) screen.classList.add('role-screen-hidden');
     const main = document.querySelector('.main');
     if (main) main.scrollTop = 0;
-    applyRolePermissions(roleKey);
-    if (isLimitedUserRole(roleKey)) {
-      showLimitedUserHome();
-    } else {
-      showSection('dashboard');
+    try {
+      applyRolePermissions(roleKey);
+      if (isLimitedUserRole(roleKey)) {
+        showLimitedUserHome();
+      } else {
+        showSection('dashboard');
+      }
+    } catch (e) {
+      console.error('[SH login]', e);
+      document.body.classList.toggle('staff-app', isFullStaffRole(roleKey));
+      try { showSection(isLimitedUserRole(roleKey) ? getLimitedUserHomeSection(roleKey) : 'dashboard'); } catch (e2) {}
     }
     saveAppSession();
   }
@@ -16367,8 +17840,10 @@
     renderPhysChecklists();
     initWhenStudentDataReady();
     safeBootData();
-    if (!restoreAppSession()) {
+    if (!restoreAppSession() && !getCurrentRole()) {
       showWelcomeScreen();
+    } else if (getCurrentRole()) {
+      dismissBlockingOverlays();
     }
   });
 

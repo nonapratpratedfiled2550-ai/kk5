@@ -4,7 +4,7 @@
 var SHEETS_CONFIG = {
   ENABLED: true,
   SPREADSHEET_ID: '15IlAOVYRi3MixwzvhwO10ZkDonm_oam_wzSM-3-BpIw',
-  WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbz_edVGCg8AcLUSOHmWjbQiaj1EPLLli72fL2jS9ofi72d2X_BiWFJolGqzPrpusrn8LA/exec',
+  WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbyeK2J9qq8w9L14MjnYtVoVVrPupv2lOhKf0nzwst1KvUWAUM9649OmKGfcLYimVG6-lg/exec',
   QUEUE_KEY: 'sh-sheets-queue',
   IS_WORKSPACE: false
 };
@@ -26,7 +26,8 @@ var SHEET_NAMES = {
   medicine: 'คลังยา',
   nurseAlert: 'แจ้งเตือนงานอนามัย',
   knowledge: 'ความรู้ด้านอนามัย',
-  studentHealth: 'ข้อมูลสุขภาพนักเรียน'
+  studentHealth: 'ข้อมูลสุขภาพนักเรียน',
+  studentRegistry: 'ทะเบียนนักเรียน'
 };
 
 function getSyncRoleLabel() {
@@ -206,12 +207,14 @@ function formatSheetDate(iso) {
 
 function buildVaccineSheetRow(record) {
   return {
+    'รหัสรายการ': record.recordId || '',
     'เลขประจำตัว': record.id || '',
     'ชื่อนามสกุล': record.name || '',
     'วัคซีนที่ฉีด': record.vaccine || '',
     'วันที่ฉีด': formatSheetDate(record.date),
     'วันที่บันทึก': record.recordedAt || '',
     'บทบาทผู้บันทึก': getSyncRoleLabel(),
+    recordId: record.recordId || '',
     id: record.id || '',
     name: record.name || '',
     vaccine: record.vaccine || '',
@@ -268,6 +271,7 @@ function buildChronicSheetRow(record) {
     'ยาที่ใช้': record.medicine || '',
     'เบอร์ติดต่อฉุกเฉิน': record.phone || '',
     'หมายเหตุ': record.note || '',
+    'แผนการดูแล': record.carePlan || '',
     'บทบาทผู้บันทึก': getSyncRoleLabel(),
     id: record.id || '',
     name: record.name || '',
@@ -276,6 +280,7 @@ function buildChronicSheetRow(record) {
     medicine: record.medicine || '',
     phone: record.phone || '',
     note: record.note || '',
+    carePlan: record.carePlan || '',
     recordedAt: record.recordedAt || ''
   };
 }
@@ -398,6 +403,19 @@ function syncUpsertRowQuiet(sheetName, matchKey, row) {
   syncPayloadQuiet(payload);
 }
 
+function syncDeleteRowQuiet(sheetName, matchKey, matchValue) {
+  if (!sheetName || !matchKey || matchValue == null || matchValue === '') return;
+  var payload = {
+    action: 'deleteRow',
+    sheet: sheetName,
+    matchKey: matchKey,
+    matchValue: String(matchValue)
+  };
+  ensureSheetSyncDom_();
+  syncViaHiddenForm_(payload);
+  syncPayloadQuiet(payload);
+}
+
 function screeningTypeLabel_(type) {
   var map = {
     vision: 'สายตา',
@@ -469,22 +487,63 @@ function syncScreeningToSheetQuiet(record) {
   syncToSheetQuiet(SHEET_NAMES.screening, buildScreeningSheetRow(record));
 }
 
+function getNextCalendarSheetOrder(calendar) {
+  var max = 0;
+  (calendar || []).forEach(function(c) {
+    var o = parseInt(c && c.sheetOrder, 10);
+    if (!isNaN(o) && o > max) max = o;
+  });
+  return max + 1;
+}
+
 function buildCalendarSheetRow(item, index) {
   item = item || {};
+  var order = item.sheetOrder != null && item.sheetOrder !== ''
+    ? String(item.sheetOrder)
+    : String((index || 0) + 1);
   return {
-    'ลำดับ': String((index || 0) + 1),
+    'ลำดับ': order,
     'วันเริ่ม': formatSheetDate(item.dateStart) || item.dateStart || '',
     'วันสิ้นสุด': formatSheetDate(item.dateEnd) || item.dateEnd || '',
     'รายละเอียดงาน': item.text || '',
     'สถานะ': item.done ? 'เสร็จแล้ว' : 'วางแผน',
     'วันที่บันทึก': new Date().toLocaleString('th-TH'),
-    'บทบาทผู้บันทึก': getSyncRoleLabel()
+    'บทบาทผู้บันทึก': getSyncRoleLabel(),
+    'รหัสกิจกรรม': item.id || '',
+    id: item.id || ''
   };
 }
 
-function syncCalendarToSheetQuiet(item, index) {
-  if (!SHEET_NAMES.calendar) return;
-  syncUpsertRowQuiet(SHEET_NAMES.calendar, 'ลำดับ', buildCalendarSheetRow(item, index));
+function syncCalendarToSheetQuiet(item, index, calendar) {
+  if (!SHEET_NAMES.calendar || !item) return;
+  if (item.sheetOrder == null || item.sheetOrder === '') {
+    item.sheetOrder = getNextCalendarSheetOrder(calendar);
+  }
+  syncToSheetQuiet(SHEET_NAMES.calendar, buildCalendarSheetRow(item, index));
+}
+
+function deleteCalendarFromSheetQuiet(item) {
+  if (!SHEET_NAMES.calendar || !item) return;
+  if (typeof item === 'string') {
+    syncDeleteRowQuiet(SHEET_NAMES.calendar, 'รหัสกิจกรรม', item);
+    return;
+  }
+  if (item.sheetOrder != null && item.sheetOrder !== '') {
+    syncDeleteRowQuiet(SHEET_NAMES.calendar, 'ลำดับ', String(item.sheetOrder));
+    return;
+  }
+  if (item.id) {
+    syncDeleteRowQuiet(SHEET_NAMES.calendar, 'รหัสกิจกรรม', item.id);
+  }
+}
+
+function deleteVaccineFromSheetQuiet(record) {
+  if (!SHEET_NAMES.vaccine || !record) return;
+  if (record.recordId) {
+    syncDeleteRowQuiet(SHEET_NAMES.vaccine, 'รหัสรายการ', record.recordId);
+    return;
+  }
+  syncDeleteRowQuiet(SHEET_NAMES.vaccine, 'เลขประจำตัว', record.id);
 }
 
 function buildMedicineSheetRow(item, opts) {
@@ -518,6 +577,11 @@ function syncMedicinePurchaseToSheetQuiet(item, addQty, note) {
     note: note,
     actionType: 'รับเข้า'
   }));
+}
+
+function deleteMedicineFromSheetQuiet(medId) {
+  if (!SHEET_NAMES.medicine || !medId) return;
+  syncDeleteRowQuiet(SHEET_NAMES.medicine, 'รหัสยา', String(medId));
 }
 
 function buildNurseAlertSheetRow(alert) {
@@ -594,6 +658,99 @@ function syncStudentHealthToSheetQuiet(id) {
   syncUpsertRowQuiet(SHEET_NAMES.studentHealth, 'รหัสนักเรียน', buildStudentHealthSheetRow(id, extra));
 }
 
+function buildStudentRegistrySheetRow(entry) {
+  entry = entry || {};
+  var dash = '—';
+  function cell(v) {
+    if (v == null || v === '' || v === dash || v === '-') return '';
+    return String(v);
+  }
+  return {
+    'รหัสนักเรียน': entry.id || '',
+    'ชื่อ-นามสกุล': entry.name || '',
+    'ชั้น': entry.class || '',
+    'อายุ': entry.age != null && entry.age !== '' ? String(entry.age) : '',
+    'เพศ': entry.genderLabel || entry.gender || '',
+    'โรคประจำตัว': cell(entry.chronic),
+    'แพ้ยา': cell(entry.drug),
+    'แพ้อาหาร': cell(entry.food),
+    'ข้อควรระวัง': cell(entry.precautions),
+    'เบอร์ผู้ปกครอง': entry.guardianPhone || '',
+    'วันที่อัปเดต': entry.updatedAt || new Date().toLocaleString('th-TH'),
+    id: entry.id || '',
+    name: entry.name || '',
+    class: entry.class || ''
+  };
+}
+
+function syncStudentRegistryEntryQuiet(entry) {
+  if (!SHEET_NAMES.studentRegistry || !entry || !entry.id) return;
+  syncUpsertRowQuiet(SHEET_NAMES.studentRegistry, 'รหัสนักเรียน', buildStudentRegistrySheetRow(entry));
+}
+
+function syncStudentRegistryBatchQuiet(rows) {
+  if (!SHEET_NAMES.studentRegistry || !rows || !rows.length) {
+    return Promise.resolve({ ok: false });
+  }
+  var payload = {
+    action: 'batchUpsertRows',
+    sheet: SHEET_NAMES.studentRegistry,
+    matchKey: 'รหัสนักเรียน',
+    rows: rows
+  };
+  ensureSheetSyncDom_();
+  return syncPayload_(payload).catch(function() {
+    syncViaHiddenForm_(payload);
+    return { ok: true, method: 'form' };
+  });
+}
+
+function parseGvizStudentRegistryRows_(gvizData) {
+  var table = gvizData && gvizData.table;
+  if (!table || !Array.isArray(table.rows)) return [];
+  var cols = table.cols || [];
+  var idxId = findGvizColIndex_(cols, ['รหัสนักเรียน', 'เลขประจำตัว', 'id']);
+  var idxName = findGvizColIndex_(cols, ['ชื่อ-นามสกุล', 'ชื่อนามสกุล', 'name']);
+  var idxClass = findGvizColIndex_(cols, ['ชั้น', 'class']);
+  var idxAge = findGvizColIndex_(cols, ['อายุ', 'age']);
+  var idxGender = findGvizColIndex_(cols, ['เพศ', 'gender']);
+  var idxChronic = findGvizColIndex_(cols, ['โรคประจำตัว', 'chronic']);
+  var idxDrug = findGvizColIndex_(cols, ['แพ้ยา', 'drug']);
+  var idxFood = findGvizColIndex_(cols, ['แพ้อาหาร', 'food']);
+  var idxPrec = findGvizColIndex_(cols, ['ข้อควรระวัง', 'precautions']);
+  var idxPhone = findGvizColIndex_(cols, ['เบอร์ผู้ปกครอง', 'phone']);
+  var idxUpdated = findGvizColIndex_(cols, ['วันที่อัปเดต', 'updatedat']);
+  var items = [];
+  table.rows.forEach(function(row) {
+    var id = idxId >= 0 ? gvizCell_(row, idxId) : '';
+    if (!id) return;
+    items.push({
+      id: String(id).trim(),
+      name: idxName >= 0 ? gvizCell_(row, idxName) : '',
+      class: idxClass >= 0 ? gvizCell_(row, idxClass) : '',
+      age: idxAge >= 0 ? gvizCell_(row, idxAge) : '',
+      gender: idxGender >= 0 ? gvizCell_(row, idxGender) : '',
+      chronic: idxChronic >= 0 ? gvizCell_(row, idxChronic) : '',
+      drug: idxDrug >= 0 ? gvizCell_(row, idxDrug) : '',
+      food: idxFood >= 0 ? gvizCell_(row, idxFood) : '',
+      precautions: idxPrec >= 0 ? gvizCell_(row, idxPrec) : '',
+      guardianPhone: idxPhone >= 0 ? gvizCell_(row, idxPhone) : '',
+      updatedAt: idxUpdated >= 0 ? gvizCell_(row, idxUpdated) : ''
+    });
+  });
+  return items;
+}
+
+function fetchStudentRegistryFromSheet() {
+  if (!SHEETS_CONFIG.ENABLED || !SHEET_NAMES.studentRegistry) {
+    return Promise.resolve([]);
+  }
+  return fetchGvizSheet_(SHEET_NAMES.studentRegistry).then(function(data) {
+    if (!data) return [];
+    return parseGvizStudentRegistryRows_(data);
+  });
+}
+
 function visitProviderNameForSheet_(record) {
   if (record.providerName) return String(record.providerName).trim();
   if (!record.provider) return '';
@@ -610,7 +767,7 @@ function buildVisitSheetRow(record) {
     'ชื่อ': record.name || '',
     'ชื่อ-นามสกุล': record.name || '',
     'ชื่อนามสกุล': record.name || '',
-    'ระบดับชั้น/ตำแหน่ง': record.class || '',
+    'ระดับชั้น/ตำแหน่ง': record.class || '',
     'ระดับชั้น/ตำแหน่ง': record.class || '',
     'ชั้น/ตำแหน่ง': record.class || '',
     'ชั้น': record.class || '',
@@ -876,6 +1033,23 @@ var VISIT_KNOWN_SYMPTOMS_ = [
   'บาดแผล / อุบัติเหตุ', 'ปัญหาสุขภาพจิต / ความเครียด', 'อื่นๆ', 'อื่น ๆ'
 ];
 
+function applySheetVisitTimestamp_(record, rowIndex) {
+  if (!record) return record;
+  var ts = resolveVisitSavedAt(record);
+  if (ts && isValidVisitSavedAt(ts)) {
+    record.savedAt = ts;
+    if (!record.recordedAt) record.recordedAt = new Date(ts).toLocaleString('th-TH');
+    record.fromSheet = true;
+    if (!record.sheetRow) record.sheetRow = (typeof rowIndex === 'number' ? rowIndex : 0) + 2;
+    if (!record.recordId || String(record.recordId).indexOf('v-sheet-') !== 0) {
+      record.recordId = 'v-sheet-r' + record.sheetRow + '-' + record.id;
+    }
+    delete record.timeRepaired;
+    return record;
+  }
+  return assignSheetVisitTodayTime_(record, rowIndex);
+}
+
 function assignSheetVisitTodayTime_(record, rowIndex) {
   if (!record) return record;
   var today = new Date();
@@ -891,6 +1065,28 @@ function assignSheetVisitTodayTime_(record, rowIndex) {
     record.recordId = 'v-sheet-r' + record.sheetRow + '-' + record.id;
   }
   return record;
+}
+
+function parseGvizVisitDateTime_(row, idx) {
+  if (!row || !row.c || !row.c[idx] || row.c[idx].v == null || row.c[idx].v === '') return 0;
+  var cell = row.c[idx];
+  if (typeof cell.v === 'string' && cell.v.indexOf('Date(') === 0) {
+    var dm = String(cell.v).match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?/);
+    if (dm) {
+      var y = parseInt(dm[1], 10);
+      if (y >= 2400) y -= 543;
+      var mo = parseInt(dm[2], 10);
+      var d = parseInt(dm[3], 10);
+      var h = parseInt(dm[4] || 0, 10);
+      var mi = parseInt(dm[5] || 0, 10);
+      var sec = parseInt(dm[6] || 0, 10);
+      var ts = new Date(y, mo, d, h, mi, sec).getTime();
+      if (isValidVisitSavedAt(ts)) return ts;
+    }
+  }
+  var f = cell.f != null && cell.f !== '' ? String(cell.f) : String(cell.v);
+  var parsed = parseVisitRecordedAt(f);
+  return isValidVisitSavedAt(parsed) ? parsed : 0;
 }
 
 function visitMatchKnownOption_(val, options) {
@@ -974,7 +1170,7 @@ function parseCompactVisitRowFromCells_(cells, rowIndex) {
   if (!record.provider && providerCandidates.length) {
     record.provider = providerCandidates[providerCandidates.length - 1];
   }
-  assignSheetVisitTodayTime_(record, rowIndex);
+  applySheetVisitTimestamp_(record, rowIndex);
   return record;
 }
 
@@ -1026,7 +1222,8 @@ function parseGvizVisitRows_(gvizData, studentId) {
     var id = idxId >= 0 ? gvizCell_(row, idxId) : '';
     if (!id || (studentId && !sheetIdsMatch_(id, studentId))) return;
     var recordedAt = idxDate >= 0 ? gvizCell_(row, idxDate) : '';
-    var savedAt = resolveVisitSavedAt({ recordedAt: recordedAt });
+    var savedAt = idxDate >= 0 ? parseGvizVisitDateTime_(row, idxDate) : 0;
+    if (!savedAt) savedAt = resolveVisitSavedAt({ recordedAt: recordedAt });
     var sheetName = idxName >= 0 ? gvizCell_(row, idxName) : '';
     if (sheetName === 'นักเรียน' || sheetName === 'ครู' || sheetName === 'บุคลากร') sheetName = '';
     visits.push({
@@ -1054,7 +1251,7 @@ function parseGvizVisitRows_(gvizData, studentId) {
       rec.savedAt = savedAt;
       rec.recordId = rec.recordId || ('v-sheet-r' + rec.sheetRow + '-' + id);
     } else {
-      assignSheetVisitTodayTime_(rec, rowIndex);
+      applySheetVisitTimestamp_(rec, rowIndex);
     }
   });
   visits.sort(function(a, b) { return (b.savedAt || 0) - (a.savedAt || 0); });
@@ -1122,6 +1319,424 @@ function fetchAllVisitRecordsFromGviz() {
 function fetchAllVisitRecordsFromSheet() {
   if (!SHEETS_CONFIG.ENABLED) return Promise.resolve([]);
   return fetchAllVisitRecordsFromGviz();
+}
+
+function padGvizDate2_(n) {
+  return n < 10 ? '0' + n : String(n);
+}
+
+function parseGvizDateToIso_(row, idx) {
+  if (!row || !row.c || !row.c[idx] || row.c[idx].v == null || row.c[idx].v === '') return '';
+  var cell = row.c[idx];
+  if (typeof cell.v === 'string' && cell.v.indexOf('Date(') === 0) {
+    var dm = cell.v.match(/Date\((\d+),(\d+),(\d+)/);
+    if (dm) {
+      var y = parseInt(dm[1], 10);
+      var mo = parseInt(dm[2], 10) + 1;
+      var d = parseInt(dm[3], 10);
+      if (y >= 2400) y -= 543;
+      return y + '-' + padGvizDate2_(mo) + '-' + padGvizDate2_(d);
+    }
+  }
+  var f = cell.f != null && cell.f !== '' ? String(cell.f) : String(cell.v);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(f)) return f;
+  var slash = f.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (slash) {
+    var day = parseInt(slash[1], 10);
+    var month = parseInt(slash[2], 10);
+    var be = parseInt(slash[3], 10);
+    if (be < 100) be = 2500 + be;
+    else if (be < 2400) be += 543;
+    return (be - 543) + '-' + padGvizDate2_(month) + '-' + padGvizDate2_(day);
+  }
+  return '';
+}
+
+function parseGvizCalendarRows_(gvizData) {
+  var table = gvizData && gvizData.table;
+  if (!table || !Array.isArray(table.rows)) return [];
+  var cols = table.cols || [];
+  var idxId = findGvizColIndex_(cols, ['รหัสกิจกรรม', 'id']);
+  var idxStart = findGvizColIndex_(cols, ['วันเริ่ม', 'datestart']);
+  var idxEnd = findGvizColIndex_(cols, ['วันสิ้นสุด', 'dateend']);
+  var idxText = findGvizColIndex_(cols, ['รายละเอียดงาน', 'ชื่อกิจกรรม', 'text']);
+  var idxStatus = findGvizColIndex_(cols, ['สถานะ', 'status']);
+  var idxOrder = findGvizColIndex_(cols, ['ลำดับ', 'order']);
+  if (idxStart < 0) {
+    for (var ci = 0; ci < cols.length; ci++) {
+      if (cols[ci].type === 'date') {
+        if (idxStart < 0) idxStart = ci;
+        else if (idxEnd < 0) idxEnd = ci;
+      }
+    }
+  }
+  var items = [];
+  table.rows.forEach(function(row, rowIndex) {
+    var id = idxId >= 0 ? gvizCell_(row, idxId) : '';
+    var dateStart = idxStart >= 0 ? parseGvizDateToIso_(row, idxStart) : '';
+    var dateEnd = idxEnd >= 0 ? parseGvizDateToIso_(row, idxEnd) : '';
+    var text = idxText >= 0 ? gvizCell_(row, idxText) : '';
+    var status = idxStatus >= 0 ? gvizCell_(row, idxStatus) : '';
+    if (!text || !dateStart) return;
+    var order = idxOrder >= 0 ? gvizCell_(row, idxOrder) : String(rowIndex + 1);
+    if (!id) {
+      id = 'cal-sheet-' + order + '-' + dateStart;
+    }
+    if (!dateEnd) dateEnd = dateStart;
+    items.push({
+      id: String(id).trim(),
+      sheetOrder: order,
+      dateStart: dateStart,
+      dateEnd: dateEnd,
+      text: String(text).trim(),
+      done: status === 'เสร็จแล้ว',
+      fromSheet: true
+    });
+  });
+  return items;
+}
+
+function fetchAllCalendarFromGviz() {
+  if (!SHEETS_CONFIG.ENABLED || !SHEETS_CONFIG.SPREADSHEET_ID) {
+    return Promise.resolve([]);
+  }
+  var sheetName = (SHEET_NAMES && SHEET_NAMES.calendar) ? SHEET_NAMES.calendar : 'ปฏิทินโรงเรียน';
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEETS_CONFIG.SPREADSHEET_ID +
+    '/gviz/tq?tqx=out:json&headers=1&sheet=' + encodeURIComponent(sheetName);
+  return fetch(url, { method: 'GET', mode: 'cors' })
+    .then(function(res) { return res.text(); })
+    .then(function(text) {
+      var data = parseGvizJson_(text);
+      if (!data || data.status !== 'ok') return [];
+      return parseGvizCalendarRows_(data);
+    })
+    .catch(function() { return []; });
+}
+
+function fetchAllCalendarFromSheet() {
+  if (!SHEETS_CONFIG.ENABLED) return Promise.resolve([]);
+  return fetchAllCalendarFromGviz();
+}
+
+function fetchGvizSheet_(sheetName) {
+  if (!SHEETS_CONFIG.ENABLED || !SHEETS_CONFIG.SPREADSHEET_ID || !sheetName) {
+    return Promise.resolve(null);
+  }
+  var url = 'https://docs.google.com/spreadsheets/d/' + SHEETS_CONFIG.SPREADSHEET_ID +
+    '/gviz/tq?tqx=out:json&headers=1&sheet=' + encodeURIComponent(sheetName);
+  return fetch(url, { method: 'GET', mode: 'cors' })
+    .then(function(res) { return res.text(); })
+    .then(function(text) {
+      var data = parseGvizJson_(text);
+      if (!data || data.status !== 'ok') return null;
+      return data;
+    })
+    .catch(function() { return null; });
+}
+
+function sheetRowSavedAt_(row, idxDate, rowIndex, cols) {
+  if (idxDate >= 0 && cols && cols[idxDate]) {
+    var col = cols[idxDate];
+    var cell = row.c && row.c[idxDate];
+    if (cell && cell.v && String(cell.v).indexOf('Date(') === 0) {
+      var dm = String(cell.v).match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?/);
+      if (dm) {
+        var y = parseInt(dm[1], 10);
+        if (y >= 2400) y -= 543;
+        var mo = parseInt(dm[2], 10);
+        var d = parseInt(dm[3], 10);
+        var h = parseInt(dm[4] || 0, 10);
+        var mi = parseInt(dm[5] || 0, 10);
+        var sec = parseInt(dm[6] || 0, 10);
+        return new Date(y, mo, d, h, mi, sec).getTime();
+      }
+    }
+    if (col.type === 'date') {
+      var iso = parseGvizDateToIso_(row, idxDate);
+      if (iso) {
+        var p = iso.split('-');
+        return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10)).getTime();
+      }
+    }
+  }
+  return Date.now() - (rowIndex || 0) * 120000;
+}
+
+function screeningTypeFromLabel_(label) {
+  var map = {
+    'สายตา': 'vision',
+    'การได้ยิน': 'hearing',
+    'โลหิตจาง': 'blood',
+    'ช่องปาก': 'oral',
+    'ร่างกาย': 'physical'
+  };
+  return map[String(label || '').trim()] || '';
+}
+
+function parseMentalScoreRisk_(val) {
+  if (!val || !String(val).trim()) return null;
+  var s = String(val).trim();
+  var m = s.match(/^(\d+(?:\.\d+)?)\s*(?:\(([^)]+)\))?/);
+  return {
+    score: m ? m[1] : s,
+    risk: m && m[2] ? m[2] : ''
+  };
+}
+
+function parseGvizNutritionRows_(gvizData) {
+  var table = gvizData && gvizData.table;
+  if (!table || !Array.isArray(table.rows)) return [];
+  var cols = table.cols || [];
+  var idxId = findGvizColIndex_(cols, ['รหัสนักเรียน', 'เลขประจำตัว', 'id']);
+  var idxName = findGvizColIndex_(cols, ['ชื่อ-นามสกุล', 'ชื่อนามสกุล', 'name']);
+  var idxClass = findGvizColIndex_(cols, ['ชั้น', 'class']);
+  var idxSex = findGvizColIndex_(cols, ['เพศ', 'sex']);
+  var idxAge = findGvizColIndex_(cols, ['อายุ', 'age']);
+  var idxWeight = findGvizColIndex_(cols, ['น้ำหนัก(kg)', 'น้ำหนัก', 'weight']);
+  var idxHeight = findGvizColIndex_(cols, ['ส่วนสูง(cm)', 'ส่วนสูง', 'height']);
+  var idxBmi = findGvizColIndex_(cols, ['bmi']);
+  var idxCat = findGvizColIndex_(cols, ['สถานะโภชนาการ', 'category']);
+  var idxDate = findGvizColIndex_(cols, ['วันที่บันทึก', 'recordedat']);
+  var items = [];
+  table.rows.forEach(function(row, rowIndex) {
+    var id = idxId >= 0 ? gvizCell_(row, idxId) : '';
+    if (!id) return;
+    var savedAt = sheetRowSavedAt_(row, idxDate, rowIndex, cols);
+    items.push({
+      id: String(id).trim(),
+      name: idxName >= 0 ? gvizCell_(row, idxName) : '',
+      class: idxClass >= 0 ? gvizCell_(row, idxClass) : '',
+      sex: idxSex >= 0 ? gvizCell_(row, idxSex) : '',
+      age: idxAge >= 0 ? gvizCell_(row, idxAge) : '',
+      weight: idxWeight >= 0 ? gvizCell_(row, idxWeight) : '',
+      height: idxHeight >= 0 ? gvizCell_(row, idxHeight) : '',
+      bmi: idxBmi >= 0 ? gvizCell_(row, idxBmi) : '',
+      category: idxCat >= 0 ? gvizCell_(row, idxCat) : '',
+      date: idxDate >= 0 ? gvizCell_(row, idxDate) : '',
+      savedAt: savedAt,
+      fromSheet: true
+    });
+  });
+  return items;
+}
+
+function parseGvizScreeningRows_(gvizData) {
+  var table = gvizData && gvizData.table;
+  if (!table || !Array.isArray(table.rows)) return [];
+  var cols = table.cols || [];
+  var idxId = findGvizColIndex_(cols, ['รหัสนักเรียน', 'เลขประจำตัว', 'id']);
+  var idxName = findGvizColIndex_(cols, ['ชื่อ-นามสกุล', 'ชื่อนามสกุล', 'name']);
+  var idxClass = findGvizColIndex_(cols, ['ชั้น', 'class']);
+  var idxSex = findGvizColIndex_(cols, ['เพศ', 'sex']);
+  var idxAge = findGvizColIndex_(cols, ['อายุ', 'age']);
+  var idxType = findGvizColIndex_(cols, ['ประเภทการตรวจ', 'type']);
+  var idxSummary = findGvizColIndex_(cols, ['ผลสรุป', 'summary']);
+  var idxDetail = findGvizColIndex_(cols, ['รายละเอียด', 'detail']);
+  var idxRecorder = findGvizColIndex_(cols, ['ผู้บันทึก', 'recorder']);
+  var idxDate = findGvizColIndex_(cols, ['วันที่บันทึก', 'recordedat']);
+  var items = [];
+  table.rows.forEach(function(row, rowIndex) {
+    var id = idxId >= 0 ? gvizCell_(row, idxId) : '';
+    var typeLabel = idxType >= 0 ? gvizCell_(row, idxType) : '';
+    var type = screeningTypeFromLabel_(typeLabel);
+    if (!id || !type) return;
+    var savedAt = sheetRowSavedAt_(row, idxDate, rowIndex, cols);
+    var recordedAt = idxDate >= 0 ? gvizCell_(row, idxDate) : '';
+    items.push({
+      id: String(id).trim(),
+      name: idxName >= 0 ? gvizCell_(row, idxName) : '',
+      class: idxClass >= 0 ? gvizCell_(row, idxClass) : '',
+      sex: idxSex >= 0 ? gvizCell_(row, idxSex) : '',
+      age: idxAge >= 0 ? gvizCell_(row, idxAge) : '',
+      type: type,
+      summary: idxSummary >= 0 ? gvizCell_(row, idxSummary) : '',
+      detail: idxDetail >= 0 ? { note: gvizCell_(row, idxDetail) } : {},
+      recorderName: idxRecorder >= 0 ? gvizCell_(row, idxRecorder) : '',
+      recordedAt: recordedAt,
+      savedAt: savedAt,
+      recordId: 'scr-sheet-' + rowIndex + '-' + id + '-' + type,
+      fromSheet: true
+    });
+  });
+  return items;
+}
+
+function parseGvizChronicRows_(gvizData) {
+  var table = gvizData && gvizData.table;
+  if (!table || !Array.isArray(table.rows)) return [];
+  var cols = table.cols || [];
+  var idxId = findGvizColIndex_(cols, ['รหัสนักเรียน', 'เลขประจำตัว', 'id']);
+  var idxName = findGvizColIndex_(cols, ['ชื่อ-นามสกุล', 'ชื่อนามสกุล', 'name']);
+  var idxClass = findGvizColIndex_(cols, ['ชั้น', 'class']);
+  var idxDisease = findGvizColIndex_(cols, ['โรคประจำตัว', 'disease']);
+  var idxMed = findGvizColIndex_(cols, ['ยาที่ใช้', 'medicine']);
+  var idxPhone = findGvizColIndex_(cols, ['เบอร์ติดต่อฉุกเฉิน', 'phone']);
+  var idxNote = findGvizColIndex_(cols, ['หมายเหตุ', 'note']);
+  var idxCare = findGvizColIndex_(cols, ['แผนการดูแล', 'careplan', 'การดูแล']);
+  var idxDate = findGvizColIndex_(cols, ['วันที่บันทึก', 'recordedat']);
+  var items = [];
+  table.rows.forEach(function(row, rowIndex) {
+    var id = idxId >= 0 ? gvizCell_(row, idxId) : '';
+    var disease = idxDisease >= 0 ? gvizCell_(row, idxDisease) : '';
+    if (!id || !disease) return;
+    var savedAt = sheetRowSavedAt_(row, idxDate, rowIndex, cols);
+    items.push({
+      id: String(id).trim(),
+      name: idxName >= 0 ? gvizCell_(row, idxName) : '',
+      class: idxClass >= 0 ? gvizCell_(row, idxClass) : '',
+      disease: disease,
+      medicine: idxMed >= 0 ? gvizCell_(row, idxMed) : '',
+      phone: idxPhone >= 0 ? gvizCell_(row, idxPhone) : '',
+      note: idxNote >= 0 ? gvizCell_(row, idxNote) : '',
+      carePlan: idxCare >= 0 ? gvizCell_(row, idxCare) : '',
+      recordedAt: idxDate >= 0 ? gvizCell_(row, idxDate) : '',
+      savedAt: savedAt,
+      recordId: 'chr-sheet-' + rowIndex + '-' + id,
+      fromSheet: true
+    });
+  });
+  return items;
+}
+
+function parseGvizDiseaseStudentRows_(gvizData) {
+  var table = gvizData && gvizData.table;
+  if (!table || !Array.isArray(table.rows)) return [];
+  var cols = table.cols || [];
+  var idxId = findGvizColIndex_(cols, ['รหัสนักเรียน', 'เลขประจำตัว', 'id']);
+  var idxName = findGvizColIndex_(cols, ['ชื่อ-นามสกุล', 'ชื่อนามสกุล', 'name']);
+  var idxDisease = findGvizColIndex_(cols, ['โรคที่พบ/สงสัย', 'disease']);
+  var idxSymDate = findGvizColIndex_(cols, ['วันที่เริ่มมีอาการ', 'symptomdate']);
+  var idxNote = findGvizColIndex_(cols, ['อาการ/รายละเอียด', 'note']);
+  var idxStatus = findGvizColIndex_(cols, ['สถานะ', 'status']);
+  var idxDate = findGvizColIndex_(cols, ['วันที่รายงาน', 'recordedat']);
+  var items = [];
+  table.rows.forEach(function(row, rowIndex) {
+    var id = idxId >= 0 ? gvizCell_(row, idxId) : '';
+    var disease = idxDisease >= 0 ? gvizCell_(row, idxDisease) : '';
+    if (!id || !disease) return;
+    var savedAt = sheetRowSavedAt_(row, idxDate, rowIndex, cols);
+    items.push({
+      source: 'student',
+      id: String(id).trim(),
+      name: idxName >= 0 ? gvizCell_(row, idxName) : '',
+      disease: disease,
+      symptomDate: idxSymDate >= 0 ? gvizCell_(row, idxSymDate) : '',
+      note: idxNote >= 0 ? gvizCell_(row, idxNote) : '',
+      status: idxStatus >= 0 ? gvizCell_(row, idxStatus) : 'รอตรวจสอบ',
+      recordedAt: idxDate >= 0 ? gvizCell_(row, idxDate) : '',
+      savedAt: savedAt,
+      fromSheet: true
+    });
+  });
+  return items;
+}
+
+function parseGvizDiseaseStaffRows_(gvizData) {
+  var table = gvizData && gvizData.table;
+  if (!table || !Array.isArray(table.rows)) return [];
+  var cols = table.cols || [];
+  var idxDisease = findGvizColIndex_(cols, ['โรคที่พบ', 'disease']);
+  var idxPatients = findGvizColIndex_(cols, ['จำนวนผู้ป่วย', 'patients']);
+  var idxRoom = findGvizColIndex_(cols, ['ห้องเรียน/กลุ่ม', 'room']);
+  var idxStart = findGvizColIndex_(cols, ['วันที่เริ่มพบ', 'startdate']);
+  var idxMeasures = findGvizColIndex_(cols, ['มาตรการที่ดำเนินการ', 'measures']);
+  var idxDate = findGvizColIndex_(cols, ['วันที่รายงาน', 'recordedat']);
+  var items = [];
+  table.rows.forEach(function(row, rowIndex) {
+    var disease = idxDisease >= 0 ? gvizCell_(row, idxDisease) : '';
+    if (!disease) return;
+    var measuresRaw = idxMeasures >= 0 ? gvizCell_(row, idxMeasures) : '';
+    var measures = measuresRaw ? String(measuresRaw).split(/\s*,\s*/) : [];
+    var savedAt = sheetRowSavedAt_(row, idxDate, rowIndex, cols);
+    items.push({
+      source: 'staff',
+      disease: disease,
+      patients: idxPatients >= 0 ? gvizCell_(row, idxPatients) : '',
+      room: idxRoom >= 0 ? gvizCell_(row, idxRoom) : '',
+      startDate: idxStart >= 0 ? gvizCell_(row, idxStart) : '',
+      measures: measures,
+      recordedAt: idxDate >= 0 ? gvizCell_(row, idxDate) : '',
+      savedAt: savedAt,
+      fromSheet: true
+    });
+  });
+  return items;
+}
+
+function parseGvizMentalRows_(gvizData) {
+  var table = gvizData && gvizData.table;
+  if (!table || !Array.isArray(table.rows)) return [];
+  var cols = table.cols || [];
+  var idxId = findGvizColIndex_(cols, ['เลขประจำตัวนักเรียน', 'รหัสนักเรียน', 'เลขประจำตัว', 'id']);
+  var idxName = findGvizColIndex_(cols, ['ชื่อนามสกุล', 'ชื่อ-นามสกุล', 'name']);
+  var idxClass = findGvizColIndex_(cols, ['ชั้น', 'class']);
+  var idxSex = findGvizColIndex_(cols, ['เพศ', 'sex']);
+  var idxAge = findGvizColIndex_(cols, ['อายุ', 'age']);
+  var idxSdq = findGvizColIndex_(cols, ['sdq']);
+  var idx9q = findGvizColIndex_(cols, ['ซึมเศร้า', '9q', 'depression']);
+  var idxAssist = findGvizColIndex_(cols, ['assist']);
+  var toolMap = {
+    sdq: 'SDQ (พฤติกรรม)',
+    '9q': 'คัดกรองซึมเศร้า (9Q)',
+    assist: 'ASSIST (สารเสพติด)'
+  };
+  var items = [];
+  table.rows.forEach(function(row, rowIndex) {
+    var id = idxId >= 0 ? gvizCell_(row, idxId) : '';
+    if (!id) return;
+    var base = {
+      id: String(id).trim(),
+      name: idxName >= 0 ? gvizCell_(row, idxName) : '',
+      class: idxClass >= 0 ? gvizCell_(row, idxClass) : '',
+      sex: idxSex >= 0 ? gvizCell_(row, idxSex) : '',
+      age: idxAge >= 0 ? gvizCell_(row, idxAge) : '',
+      savedAt: Date.now() - rowIndex * 120000,
+      fromSheet: true
+    };
+    [
+      { type: 'sdq', idx: idxSdq },
+      { type: '9q', idx: idx9q },
+      { type: 'assist', idx: idxAssist }
+    ].forEach(function(col, ci) {
+      if (col.idx < 0) return;
+      var parsed = parseMentalScoreRisk_(gvizCell_(row, col.idx));
+      if (!parsed) return;
+      items.push(Object.assign({}, base, {
+        type: col.type,
+        tool: toolMap[col.type] || col.type,
+        score: parsed.score,
+        risk: parsed.risk,
+        recordedAt: new Date(base.savedAt - ci * 1000).toLocaleString('th-TH'),
+        savedAt: base.savedAt - ci * 1000,
+        recordId: 'mh-sheet-' + rowIndex + '-' + id + '-' + col.type
+      }));
+    });
+  });
+  return items;
+}
+
+function fetchAllAssessmentDataFromSheet() {
+  if (!SHEETS_CONFIG.ENABLED || !SHEETS_CONFIG.SPREADSHEET_ID) {
+    return Promise.resolve({});
+  }
+  var specs = [
+    { key: 'nutrition', name: SHEET_NAMES.nutrition, parser: parseGvizNutritionRows_ },
+    { key: 'screening', name: SHEET_NAMES.screening, parser: parseGvizScreeningRows_ },
+    { key: 'chronic', name: SHEET_NAMES.chronic, parser: parseGvizChronicRows_ },
+    { key: 'diseaseStudent', name: SHEET_NAMES.diseaseStudent, parser: parseGvizDiseaseStudentRows_ },
+    { key: 'diseaseStaff', name: SHEET_NAMES.diseaseStaff, parser: parseGvizDiseaseStaffRows_ },
+    { key: 'mental', name: SHEET_NAMES.mental, parser: parseGvizMentalRows_ }
+  ];
+  return Promise.all(specs.map(function(spec) {
+    if (!spec.name) return Promise.resolve({ key: spec.key, items: [] });
+    return fetchGvizSheet_(spec.name).then(function(data) {
+      return { key: spec.key, items: data ? spec.parser(data) : [] };
+    });
+  })).then(function(results) {
+    var out = {};
+    results.forEach(function(r) { out[r.key] = r.items || []; });
+    return out;
+  });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
